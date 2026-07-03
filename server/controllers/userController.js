@@ -56,6 +56,11 @@ exports.deleteCollector = async (req, res, next) => {
       data: { userId: null }
     });
 
+    // Delete associated login logs to avoid foreign key constraints
+    await prisma.loginLog.deleteMany({
+      where: { userId: parseInt(id) }
+    });
+
     await prisma.user.delete({ where: { id: parseInt(id) } });
     res.json({ success: true, message: 'Collector deleted successfully' });
   } catch (error) {

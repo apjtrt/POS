@@ -5,7 +5,7 @@ const { uploadToGithub } = require('../services/githubService');
 
 exports.createDonation = async (req, res, next) => {
   try {
-    const { donorName, fatherName, mobile, street, doorNumber, amount, paymentMode, purpose, remarks, bypassDuplicateCheck } = req.body;
+    const { donorName, fatherName, mobile, street, doorNumber, amount, paymentMode, purpose, remarks, bypassDuplicateCheck, latitude, longitude } = req.body;
 
     // Duplicate Check
     if (!bypassDuplicateCheck) {
@@ -51,7 +51,9 @@ exports.createDonation = async (req, res, next) => {
         purpose,
         remarks,
         collector: req.user.name,
-        userId: req.user.id
+        userId: req.user.id,
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null
       }
     });
 

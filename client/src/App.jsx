@@ -13,6 +13,8 @@ import ReceiptVerification from './pages/ReceiptVerification';
 import DetailedReports from './pages/DetailedReports';
 import ManageUsers from './pages/ManageUsers';
 import SecurityLogs from './pages/SecurityLogs';
+import Expenses from './pages/Expenses';
+import ManageExpenses from './pages/ManageExpenses';
 
 // Layout
 import MainLayout from './components/layout/MainLayout';
@@ -43,12 +45,14 @@ function App() {
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/donations/new" element={<ProtectedRoute><DonationForm /></ProtectedRoute>} />
           <Route path="/donations/history" element={<ProtectedRoute><ReceiptHistory /></ProtectedRoute>} />
+          <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
           
           {/* Admin Only Routes */}
           <Route path="/reports" element={<AdminRoute><DetailedReports /></AdminRoute>} />
           <Route path="/users" element={<AdminRoute><ManageUsers /></AdminRoute>} />
           <Route path="/security-logs" element={<AdminRoute><SecurityLogs /></AdminRoute>} />
           <Route path="/settings" element={<AdminRoute><Settings /></AdminRoute>} />
+          <Route path="/manage-expenses" element={<AdminRoute><ManageExpenses /></AdminRoute>} />
           
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

@@ -32,6 +32,7 @@ const settingsRoutes = require('./routes/settings');
 const verifyRoutes = require('./routes/verify');
 const usersRoutes = require('./routes/users');
 const loginLogsRoutes = require('./routes/loginLogs');
+const expensesRoutes = require('./routes/expenses');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/donations', donationRoutes);
@@ -39,6 +40,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/login-logs', loginLogsRoutes);
+app.use('/api/expenses', expensesRoutes);
 app.use('/receipt', verifyRoutes); // Public route for QR code verification
 
 // Error Handling Middleware

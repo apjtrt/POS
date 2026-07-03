@@ -33,8 +33,26 @@ const DonationForm = () => {
     setDuplicateWarning(null);
     setFormDataCache(data);
 
+    // Get location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          await submitData(data, bypass, position.coords.latitude, position.coords.longitude);
+        },
+        async (error) => {
+          toast.warning('Location access denied. Submitting without GPS.');
+          await submitData(data, bypass, null, null);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else {
+      await submitData(data, bypass, null, null);
+    }
+  };
+
+  const submitData = async (data, bypass, latitude, longitude) => {
     try {
-      const payload = { ...data, bypassDuplicateCheck: bypass };
+      const payload = { ...data, bypassDuplicateCheck: bypass, latitude, longitude };
       const res = await api.post('/donations', payload);
       
       toast.success('Receipt generated successfully!');

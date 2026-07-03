@@ -70,8 +70,27 @@ const SecurityLogs = () => {
                   {log.user.role}
                 </span>
               </div>
-              <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 font-medium">
-                {format(new Date(log.createdAt), 'MMM d, yyyy - h:mm:ss a')}
+              <div className="mt-auto space-y-2 pt-3 border-t border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                <div className="flex justify-between items-center">
+                  <span>Login: {format(new Date(log.createdAt), 'MMM d, h:mm a')}</span>
+                  {log.loginLatitude && (
+                    <a href={`https://www.google.com/maps/search/?api=1&query=${log.loginLatitude},${log.loginLongitude}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 flex items-center">
+                      <Camera className="w-3 h-3 mr-1" /> Map
+                    </a>
+                  )}
+                </div>
+                {log.logoutTime ? (
+                  <div className="flex justify-between items-center">
+                    <span>Logout: {format(new Date(log.logoutTime), 'MMM d, h:mm a')}</span>
+                    {log.logoutLatitude && (
+                      <a href={`https://www.google.com/maps/search/?api=1&query=${log.logoutLatitude},${log.logoutLongitude}`} target="_blank" rel="noopener noreferrer" className="text-red-500 hover:text-red-600 flex items-center">
+                        <Camera className="w-3 h-3 mr-1" /> Map
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-green-500">Currently Active</div>
+                )}
               </div>
             </div>
           </div>
