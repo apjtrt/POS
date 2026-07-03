@@ -377,6 +377,39 @@ const DonationForm = () => {
 
           {paymentMode === 'UPI' && (
             <div className="md:col-span-2 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 mt-4">
+              {amount > 0 && settings?.upiId ? (
+                <div className="mb-6 flex flex-col sm:flex-row items-center gap-6 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm">
+                  <div className="bg-white p-2 rounded-xl shadow-inner">
+                    <QRCodeSVG 
+                      value={`upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(settings.associationName)}&am=${amount}&cu=INR`}
+                      size={140}
+                      level="H"
+                    />
+                  </div>
+                  <div className="text-center sm:text-left">
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center justify-center sm:justify-start mb-2">
+                      <QrCode className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
+                      Scan to Pay
+                    </h3>
+                    <div className="space-y-1">
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">UPI ID:</span> {settings.upiId}
+                      </p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">Amount:</span> <span className="text-emerald-600 font-bold text-lg">₹{amount}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-sm flex items-center">
+                  <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  {!settings?.upiId 
+                    ? "Admin hasn't configured a UPI ID yet. (Go to Settings to add one)" 
+                    : "Please enter a Donation Amount above to generate the QR Code."}
+                </div>
+              )}
+
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center">
                 Upload UPI Screenshot (Mandatory) *
               </label>
@@ -461,30 +494,8 @@ const DonationForm = () => {
           )}
         </div>
 
-        <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+        <div className="mt-6 flex flex-col md:flex-row justify-end items-center gap-6 pt-6 border-t border-slate-200 dark:border-slate-700">
           
-          <div className="w-full md:w-auto">
-            {paymentMode === 'UPI' && amount > 0 && settings?.upiId && (
-              <div className="flex items-center gap-4 p-4 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg shadow-sm">
-                <div className="bg-white p-2 rounded-md">
-                  <QRCodeSVG 
-                    value={`upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(settings.associationName)}&am=${amount}&cu=INR`}
-                    size={120}
-                    level="H"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center">
-                    <QrCode className="w-4 h-4 mr-1 text-blue-600 dark:text-blue-400" />
-                    Scan to Pay
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">UPI ID: {settings.upiId}</p>
-                  <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mt-1">Amount: ₹{amount}</p>
-                </div>
-              </div>
-            )}
-          </div>
-
           <button
             type="submit"
             disabled={loading}
