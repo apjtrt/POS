@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import api from '../services/api';
 import { toast } from 'react-toastify';
-import { Download, Send, QrCode } from 'lucide-react';
+import { Download, Send, QrCode, Camera, Upload, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 const DonationForm = () => {
@@ -22,13 +22,125 @@ const DonationForm = () => {
   const [formDataCache, setFormDataCache] = useState(null);
   const [createdReceipt, setCreatedReceipt] = useState(null);
   const [settings, setSettings] = useState(null);
+  const [upiScreenshot, setUpiScreenshot] = useState(null);
+
+  // Camera state
+  const [showCamera, setShowCamera] = useState(false);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [stream, setStream] = useState(null);
+
+  // Cleanup camera on unmount
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [stream]);
+
+  // Clean up camera if payment mode changes away from UPI
+  useEffect(() => {
+    if (paymentMode !== 'UPI') {
+      stopCamera();
+      setUpiScreenshot(null);
+    }
+  }, [paymentMode]);
+
+  const startCamera = async () => {
+    try {
+      // Use environment facing camera (back camera) for capturing another screen
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
+      });
+      setStream(mediaStream);
+      setShowCamera(true);
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+        }
+      }, 100);
+    } catch (err) {
+      toast.error('Could not access camera. You can still upload a file.');
+    }
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setShowCamera(false);
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const context = canvasRef.current.getContext('2d');
+    
+    // Use actual video dimensions
+    const width = videoRef.current.videoWidth || 640;
+    const height = videoRef.current.videoHeight || 480;
+    
+    canvasRef.current.width = width;
+    canvasRef.current.height = height;
+    
+    context.drawImage(videoRef.current, 0, 0, width, height);
+    const photoBase64 = canvasRef.current.toDataURL('image/jpeg', 0.6);
+    setUpiScreenshot(photoBase64);
+    stopCamera();
+  };
 
   // Fetch settings for WhatsApp message template
   useState(() => {
     api.get('/settings').then(res => setSettings(res.data.data));
   }, []);
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Compress image and convert to base64
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Convert back to base64, 0.7 quality jpeg
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        setUpiScreenshot(dataUrl);
+      };
+    };
+  };
+
   const onSubmit = async (data, bypass = false) => {
+    if (data.paymentMode === 'UPI' && !upiScreenshot) {
+      toast.error('Please upload a screenshot of the UPI payment.');
+      return;
+    }
+
     setLoading(true);
     setDuplicateWarning(null);
     setFormDataCache(data);
@@ -52,11 +164,12 @@ const DonationForm = () => {
 
   const submitData = async (data, bypass, latitude, longitude) => {
     try {
-      const payload = { ...data, bypassDuplicateCheck: bypass, latitude, longitude };
+      const payload = { ...data, bypassDuplicateCheck: bypass, latitude, longitude, upiScreenshot };
       const res = await api.post('/donations', payload);
       
       toast.success('Receipt generated successfully!');
       setCreatedReceipt(res.data.donor);
+      setUpiScreenshot(null);
       reset(); // Reset form for next entry
     } catch (error) {
       if (error.response?.status === 409 && error.response?.data?.isDuplicate) {
@@ -230,7 +343,6 @@ const DonationForm = () => {
             >
               <option value="Cash">Cash</option>
               <option value="UPI">UPI</option>
-              <option value="Bank Transfer">Bank Transfer</option>
             </select>
           </div>
 
@@ -262,6 +374,91 @@ const DonationForm = () => {
               className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
             ></textarea>
           </div>
+
+          {paymentMode === 'UPI' && (
+            <div className="md:col-span-2 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 mt-4">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center">
+                Upload UPI Screenshot (Mandatory) *
+              </label>
+
+              {!showCamera && !upiScreenshot && (
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <button 
+                    type="button" 
+                    onClick={startCamera}
+                    className="flex-1 flex items-center justify-center px-4 py-3 border border-slate-300 shadow-sm text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    <Camera className="w-5 h-5 mr-2" /> Use Live Camera
+                  </button>
+                  <div className="flex-1 relative">
+                    <input 
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <div className="flex items-center justify-center px-4 py-3 border border-slate-300 shadow-sm text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-700 transition-colors pointer-events-none">
+                      <Upload className="w-5 h-5 mr-2" /> Upload File
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {showCamera && (
+                <div className="mt-4 space-y-4">
+                  <div className="relative rounded-lg overflow-hidden bg-black aspect-video flex items-center justify-center border border-slate-300 dark:border-slate-600 max-w-lg mx-auto">
+                    <video 
+                      ref={videoRef} 
+                      autoPlay 
+                      playsInline 
+                      muted 
+                      className="w-full h-full object-cover"
+                    ></video>
+                    <canvas ref={canvasRef} className="hidden" />
+                  </div>
+                  
+                  <div className="flex gap-4 justify-center">
+                    <button
+                      type="button"
+                      onClick={stopCamera}
+                      className="px-6 py-2 border border-slate-300 dark:border-slate-600 text-sm font-medium rounded-lg text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={capturePhoto}
+                      className="px-6 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 transition-colors flex items-center"
+                    >
+                      <Camera className="w-4 h-4 mr-2" /> Capture
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {upiScreenshot && !showCamera && (
+                <div className="mt-4 p-4 border border-green-200 bg-green-50 dark:bg-green-900/30 dark:border-green-800 rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center text-green-700 dark:text-green-400">
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                      <span className="font-medium text-sm">Screenshot attached successfully!</span>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => setUpiScreenshot(null)}
+                      className="text-slate-400 hover:text-red-500 transition-colors"
+                      title="Remove image"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="mt-3 flex justify-center bg-white dark:bg-slate-800 p-2 rounded border border-green-100 dark:border-green-800 max-h-48 overflow-hidden">
+                    <img src={upiScreenshot} alt="Preview" className="object-contain w-full h-full rounded max-w-xs" />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-6 pt-6 border-t border-slate-200 dark:border-slate-700">
