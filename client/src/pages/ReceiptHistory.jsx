@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router';
 import api from '../services/api';
 import { toast } from 'react-toastify';
-import { Download, Search, Filter, Trash2, Send, MapPin, FileSpreadsheet, FileText } from 'lucide-react';
+import { Download, Search, Filter, Trash2, Send, MapPin, FileSpreadsheet, FileText, Image } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
 import jsPDF from 'jspdf';
@@ -26,6 +26,7 @@ const ReceiptHistory = () => {
   const [paymentMode, setPaymentMode] = useState('');
   const [collectorFilter, setCollectorFilter] = useState(targetCollector || '');
   const [exporting, setExporting] = useState(false);
+  const [selectedScreenshot, setSelectedScreenshot] = useState(null);
 
   const fetchDonations = async (page = 1, fetchAll = false) => {
     setLoading(!fetchAll);
@@ -217,7 +218,6 @@ const ReceiptHistory = () => {
             <option value="">All Payments</option>
             <option value="Cash">Cash</option>
             <option value="UPI">UPI</option>
-            <option value="Bank Transfer">Bank Transfer</option>
           </select>
           
           {user?.role === 'ADMIN' && (
@@ -282,6 +282,11 @@ const ReceiptHistory = () => {
                       <a href={donor.pdfUrl || `http://localhost:5000/api/donations/${donor.receiptNumber}/pdf`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300" title="Download PDF">
                         <Download className="inline h-4 w-4" />
                       </a>
+                      {donor.paymentMode === 'UPI' && donor.upiScreenshot && user?.role === 'ADMIN' && (
+                        <button onClick={() => setSelectedScreenshot(donor.upiScreenshot)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300" title="View UPI Screenshot">
+                          <Image className="inline h-4 w-4" />
+                        </button>
+                      )}
                       <button onClick={() => handleWhatsApp(donor)} className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300" title="Send WhatsApp">
                         <Send className="inline h-4 w-4" />
                       </button>
@@ -345,6 +350,25 @@ const ReceiptHistory = () => {
           </div>
         )}
       </div>
+
+      {selectedScreenshot && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
+          <div className="relative max-w-3xl w-full bg-white dark:bg-slate-800 rounded-xl shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">UPI Payment Screenshot</h3>
+              <button 
+                onClick={() => setSelectedScreenshot(null)}
+                className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            <div className="p-4 flex justify-center bg-slate-100 dark:bg-slate-900 overflow-auto max-h-[80vh]">
+              <img src={selectedScreenshot} alt="UPI Screenshot" className="max-w-full h-auto object-contain rounded" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
