@@ -25,15 +25,45 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, []);
 
-  const login = async (username, password, photoBase64) => {
-    const res = await api.post('/auth/login', { username, password, photoBase64 });
+  const login = async (username, password, photoBase64, latitude, longitude) => {
+    const res = await api.post('/auth/login', { username, password, photoBase64, latitude, longitude });
     localStorage.setItem('token', res.data.token);
+    if (res.data.sessionId) {
+      localStorage.setItem('sessionId', res.data.sessionId);
+    }
     api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
     setUser(res.data.user);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const sessionId = localStorage.getItem('sessionId');
+    
+    if (sessionId) {
+      // Create a promise to handle GPS fetch with a timeout so we don't hang logout forever
+      const getPosition = () => new Promise((resolve) => {
+        if (!navigator.geolocation) return resolve(null);
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          () => resolve(null),
+          { timeout: 5000, maximumAge: 0 }
+        );
+      });
+
+      const coords = await getPosition();
+      
+      try {
+        await api.post('/auth/logout', { 
+          sessionId, 
+          latitude: coords?.lat || null, 
+          longitude: coords?.lng || null 
+        });
+      } catch (err) {
+        console.error('Failed to log out session on server', err);
+      }
+    }
+
     localStorage.removeItem('token');
+    localStorage.removeItem('sessionId');
     setUser(null);
   };
 

@@ -64,8 +64,21 @@ const Login = () => {
     }
 
     setLoading(true);
+    
+    // Get location
+    const getPosition = () => new Promise((resolve) => {
+      if (!navigator.geolocation) return resolve(null);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => resolve(null),
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      );
+    });
+
+    const coords = await getPosition();
+
     try {
-      await login(username, password, photoBase64);
+      await login(username, password, photoBase64, coords?.lat || null, coords?.lng || null);
       navigate('/');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed');

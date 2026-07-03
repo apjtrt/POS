@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router';
 import api from '../services/api';
 import { toast } from 'react-toastify';
-import { Download, Search, Filter, Trash2, Send } from 'lucide-react';
+import { Download, Search, Filter, Trash2, Send, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -146,9 +146,9 @@ const ReceiptHistory = () => {
             </thead>
             <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
               {loading ? (
-                <tr><td colSpan="6" className="px-6 py-4 text-center text-sm text-slate-500">Loading...</td></tr>
+                <tr><td colSpan="7" className="px-6 py-4 text-center text-sm text-slate-500">Loading...</td></tr>
               ) : donations.length === 0 ? (
-                <tr><td colSpan="6" className="px-6 py-4 text-center text-sm text-slate-500">No receipts found.</td></tr>
+                <tr><td colSpan="7" className="px-6 py-4 text-center text-sm text-slate-500">No receipts found.</td></tr>
               ) : (
                 donations.map((donor) => (
                   <tr key={donor.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
@@ -160,7 +160,20 @@ const ReceiptHistory = () => {
                       <div>{donor.donorName}</div>
                       <div className="text-xs text-slate-500">{donor.mobile}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{donor.street}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                      {donor.street}
+                      {donor.latitude && user?.role === 'ADMIN' && (
+                        <a 
+                          href={`https://www.google.com/maps/search/?api=1&query=${donor.latitude},${donor.longitude}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="ml-2 inline-flex text-red-500 hover:text-red-600"
+                          title="View on Map"
+                        >
+                          <MapPin className="h-4 w-4" />
+                        </a>
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{donor.collector}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900 dark:text-slate-200">₹{donor.amount}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">

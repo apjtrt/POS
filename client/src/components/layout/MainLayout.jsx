@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router';
-import { LayoutDashboard, FileText, History, Settings as SettingsIcon, Menu, X, LogOut, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, FileText, History, Settings as SettingsIcon, Menu, X, LogOut, ShieldAlert, Receipt } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const MainLayout = ({ children }) => {
@@ -14,7 +14,12 @@ const MainLayout = ({ children }) => {
     { name: 'Receipt History', href: '/donations/history', icon: History },
   ];
 
+  if (user?.role === 'COLLECTOR') {
+    navigation.push({ name: 'My Expenses', href: '/expenses', icon: Receipt });
+  }
+
   if (user?.role === 'ADMIN') {
+    navigation.push({ name: 'Manage Expenses', href: '/manage-expenses', icon: Receipt });
     navigation.push({ name: 'Manage Collectors', href: '/users', icon: SettingsIcon });
     navigation.push({ name: 'Security Logs', href: '/security-logs', icon: ShieldAlert });
     navigation.push({ name: 'Settings', href: '/settings', icon: SettingsIcon });
