@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router';
 import api from '../services/api';
 import { toast } from 'react-toastify';
-import { Download, Search, Filter, Trash2, Send, MapPin } from 'lucide-react';
+import { Download, Search, Filter, Trash2, Send, MapPin, FileSpreadsheet, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const ReceiptHistory = () => {
   const { user } = useAuth();
@@ -23,13 +25,14 @@ const ReceiptHistory = () => {
   const [street, setStreet] = useState('');
   const [paymentMode, setPaymentMode] = useState('');
   const [collectorFilter, setCollectorFilter] = useState(targetCollector || '');
+  const [exporting, setExporting] = useState(false);
 
-  const fetchDonations = async (page = 1) => {
-    setLoading(true);
+  const fetchDonations = async (page = 1, fetchAll = false) => {
+    setLoading(!fetchAll);
     try {
       const query = new URLSearchParams({
-        page,
-        limit: 10,
+        page: fetchAll ? 1 : page,
+        limit: fetchAll ? 1000000 : 10,
         ...(search && { search }),
         ...(street && { street }),
         ...(paymentMode && { paymentMode }),
@@ -37,12 +40,16 @@ const ReceiptHistory = () => {
         ...(targetDate && { date: targetDate }),
       });
       const res = await api.get(`/donations?${query}`);
+      if (fetchAll) {
+        return res.data.data;
+      }
       setDonations(res.data.data);
       setPagination(res.data.pagination);
     } catch (error) {
       toast.error('Failed to fetch donations');
+      return [];
     } finally {
-      setLoading(false);
+      if (!fetchAll) setLoading(false);
     }
   };
 
@@ -50,6 +57,82 @@ const ReceiptHistory = () => {
     fetchDonations(1);
     api.get('/settings').then(res => setSettings(res.data.data)).catch(console.error);
   }, [search, street, paymentMode, collectorFilter]);
+
+  const exportToCSV = async () => {
+    setExporting(true);
+    try {
+      const allData = await fetchDonations(1, true);
+      
+      const headers = ['Receipt No', 'Date', 'Donor Name', 'Mobile', 'Street', 'Amount', 'Payment Mode', 'Collector'];
+      const rows = allData.map(d => [
+        d.receiptNumber,
+        format(new Date(d.date), 'dd-MMM-yyyy'),
+        `"${d.donorName}"`,
+        d.mobile,
+        `"${d.street}"`,
+        d.amount,
+        d.paymentMode,
+        `"${d.collector}"`
+      ]);
+
+      const csvContent = [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Receipts_Export_${format(new Date(), 'yyyyMMdd_HHmm')}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('Excel (CSV) exported successfully');
+    } catch (error) {
+      toast.error('Failed to export CSV');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const exportToPDF = async () => {
+    setExporting(true);
+    try {
+      const allData = await fetchDonations(1, true);
+      
+      const doc = new jsPDF('landscape');
+      doc.setFontSize(18);
+      doc.text(settings?.associationName || 'Donation Receipts Report', 14, 22);
+      
+      doc.setFontSize(11);
+      doc.text(`Generated on: ${format(new Date(), 'dd-MMM-yyyy HH:mm')}`, 14, 30);
+
+      const tableColumn = ['Receipt No', 'Date', 'Donor Name', 'Mobile', 'Street', 'Amount', 'Payment Mode', 'Collector'];
+      const tableRows = allData.map(d => [
+        d.receiptNumber,
+        format(new Date(d.date), 'dd-MMM-yyyy'),
+        d.donorName,
+        d.mobile,
+        d.street,
+        `Rs. ${d.amount}`,
+        d.paymentMode,
+        d.collector
+      ]);
+
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 35,
+        theme: 'striped',
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [59, 130, 246] }
+      });
+
+      doc.save(`Receipts_Export_${format(new Date(), 'yyyyMMdd_HHmm')}.pdf`);
+      toast.success('PDF exported successfully');
+    } catch (error) {
+      toast.error('Failed to export PDF');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this receipt?')) {
@@ -80,6 +163,25 @@ const ReceiptHistory = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Receipt History</h1>
         
+        <div className="flex gap-2">
+          <button 
+            onClick={exportToCSV}
+            disabled={exporting || donations.length === 0}
+            className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+          >
+            <FileSpreadsheet className="w-4 h-4 mr-2" /> Export Excel
+          </button>
+          <button 
+            onClick={exportToPDF}
+            disabled={exporting || donations.length === 0}
+            className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+          >
+            <FileText className="w-4 h-4 mr-2" /> Export PDF
+          </button>
+        </div>
+      </div>
+      
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         {/* Filters */}
         <div className="flex flex-wrap gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:w-64">
