@@ -36,7 +36,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <StatCard 
             title="Total Revenue (UPI + Cash)" 
-            value={`₹${stats.totalAll?.toLocaleString() || 0}`} 
+            value={`₹${((stats.totalUpi || 0) + (stats.totalReceived || 0)).toLocaleString()}`} 
             icon={IndianRupee} 
             color="text-indigo-600" 
             bg="bg-indigo-100 dark:bg-indigo-900/50" 
@@ -50,7 +50,7 @@ const Dashboard = () => {
           />
           <StatCard 
             title="Total Remaining Amount" 
-            value={`₹${((stats.totalAll || 0) - (stats.totalSpent || 0)).toLocaleString()}`} 
+            value={`₹${(((stats.totalUpi || 0) + (stats.totalReceived || 0)) - (stats.totalSpent || 0)).toLocaleString()}`} 
             icon={Wallet} 
             color="text-blue-600" 
             bg="bg-blue-100 dark:bg-blue-900/50" 
