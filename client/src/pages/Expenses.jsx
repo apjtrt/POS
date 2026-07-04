@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Camera, MapPin, Send, Loader2, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 function Expenses() {
   const { user, login } = useAuth(); // Need useAuth to fetch user and potentially refresh it
