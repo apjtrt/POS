@@ -29,7 +29,7 @@ const MainLayout = ({ children }) => {
     <div className="flex h-screen bg-slate-50 dark:bg-slate-900">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -47,7 +47,7 @@ const MainLayout = ({ children }) => {
             <X size={20} />
           </button>
         </div>
-        
+
         <nav className="p-4 space-y-1">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
@@ -57,8 +57,8 @@ const MainLayout = ({ children }) => {
                 to={item.href}
                 className={`
                   flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors
-                  ${isActive 
-                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-200' 
+                  ${isActive
+                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-200'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700/50 dark:hover:text-white'}
                 `}
               >
@@ -74,21 +74,22 @@ const MainLayout = ({ children }) => {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
         <header className="flex items-center justify-between h-16 px-4 sm:px-6 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-          <button 
+          <button
             onClick={() => setSidebarOpen(true)}
             className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
           >
             <Menu size={24} />
           </button>
-          
+
           <div className="flex items-center gap-4 ml-auto">
             <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
               Welcome, {user?.name}
               {user?.role === 'ADMIN' && (
                 <span className="px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Admin</span>
+
               )}
             </span>
-            <button 
+            <button
               onClick={logout}
               className="flex items-center text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400"
             >
