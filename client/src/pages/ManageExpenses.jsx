@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, MapPin, CheckCircle, XCircle, Search, Download } from 'lucide-react';
 import { toast } from 'react-toastify';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import api from '../services/api';
 
 function ManageExpenses() {
@@ -63,7 +63,7 @@ function ManageExpenses() {
       { content: `Rs. ${totalAmount}`, styles: { fontStyle: 'bold' } }
     ]);
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: 30,
       head: [['Date', 'Expense Description', 'Amount']],
       body: tableData,
