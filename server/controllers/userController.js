@@ -5,7 +5,7 @@ exports.getCollectors = async (req, res, next) => {
   try {
     const collectors = await prisma.user.findMany({
       where: { role: { in: ['COLLECTOR', 'CASHIER'] } },
-      select: { id: true, username: true, name: true, role: true, createdAt: true, _count: { select: { donations: true } } }
+      select: { id: true, username: true, name: true, role: true, createdAt: true, upiId: true, _count: { select: { donations: true } } }
     });
     res.json({ success: true, data: collectors });
   } catch (error) {

@@ -9,13 +9,24 @@ function Expenses() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState({ amount: '', description: '', paymentNumber: '' });
+  const [formData, setFormData] = useState({ amount: '', description: '', paymentNumber: '', claimFromAdvance: false });
+  const [advanceStats, setAdvanceStats] = useState(null);
   const [photoBase64, setPhotoBase64] = useState(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchExpenses();
+    fetchAdvanceBalance();
   }, []);
+
+  const fetchAdvanceBalance = async () => {
+    try {
+      const response = await api.get('/expenses/advance-balance');
+      setAdvanceStats(response.data.data);
+    } catch (error) {
+      console.error('Failed to load advance balance');
+    }
+  };
 
   const fetchExpenses = async () => {
     try {
@@ -87,10 +98,11 @@ function Expenses() {
       await api.post('/expenses', {
         amount: formData.amount,
         description: formData.description,
-        paymentNumber: payloadPaymentNumber,
+        paymentNumber: formData.claimFromAdvance ? null : payloadPaymentNumber,
         billPhotoBase64: photoBase64,
         latitude,
-        longitude
+        longitude,
+        claimFromAdvance: formData.claimFromAdvance
       });
       
       toast.success('Expense submitted for approval!');
@@ -100,7 +112,7 @@ function Expenses() {
         setTimeout(() => window.location.reload(), 1500);
       }
 
-      setFormData({ amount: '', description: '', paymentNumber: '' });
+      setFormData({ amount: '', description: '', paymentNumber: '', claimFromAdvance: false });
       setPhotoBase64(null);
       fetchExpenses(); // Refresh list
     } catch (error) {
@@ -121,6 +133,26 @@ function Expenses() {
 
   return (
     <div className="space-y-6">
+      {advanceStats && (
+        <div className="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl shadow-sm p-6 text-white">
+          <h2 className="text-lg font-bold mb-4 opacity-90">My Advance Account</h2>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
+              <p className="text-sm font-medium opacity-80 mb-1">Total Advanced</p>
+              <p className="text-2xl font-bold">₹{advanceStats.totalAdvanceReceived}</p>
+            </div>
+            <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
+              <p className="text-sm font-medium opacity-80 mb-1">Total Deducted</p>
+              <p className="text-2xl font-bold">₹{advanceStats.totalSpentFromAdvance}</p>
+            </div>
+            <div className="bg-white/20 rounded-xl p-4 backdrop-blur-sm border border-white/30">
+              <p className="text-sm font-medium opacity-90 mb-1">Remaining Balance</p>
+              <p className="text-2xl font-bold">₹{advanceStats.remainingBalance}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
           <span className="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">
@@ -155,28 +187,58 @@ function Expenses() {
             />
           </div>
 
-          {user?.upiId ? (
-            <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
-              <label className="block text-sm font-medium text-purple-900 mb-1">Reimbursement Payment Address</label>
-              <div className="flex items-center justify-between">
-                <p className="text-purple-700 font-bold">{user.upiId}</p>
-                <span className="text-xs bg-purple-200 text-purple-800 px-2 py-1 rounded-full font-semibold">Saved</span>
+          {advanceStats && advanceStats.remainingBalance > 0 && (
+            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+              <label className="block text-sm font-medium text-blue-900 mb-3">How did you pay for this?</label>
+              <div className="flex gap-4">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="claimFromAdvance"
+                    checked={!formData.claimFromAdvance}
+                    onChange={() => setFormData({...formData, claimFromAdvance: false})}
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Own Pocket (Reimburse Me)</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="claimFromAdvance"
+                    checked={formData.claimFromAdvance}
+                    onChange={() => setFormData({...formData, claimFromAdvance: true})}
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Organization Advance</span>
+                </label>
               </div>
-              <p className="text-xs text-purple-600 mt-2">Payments will be sent automatically to this saved UPI ID.</p>
             </div>
-          ) : (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full UPI ID (for Reimbursement)</label>
-              <input
-                type="text"
-                required
-                value={formData.paymentNumber}
-                onChange={(e) => setFormData({...formData, paymentNumber: e.target.value})}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                placeholder="e.g. 9876543210@ybl or name@okaxis"
-              />
-              <p className="text-xs text-gray-500 mt-1">This will be securely saved for all future reimbursements.</p>
-            </div>
+          )}
+
+          {!formData.claimFromAdvance && (
+            user?.upiId ? (
+              <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
+                <label className="block text-sm font-medium text-purple-900 mb-1">Reimbursement Payment Address</label>
+                <div className="flex items-center justify-between">
+                  <p className="text-purple-700 font-bold">{user.upiId}</p>
+                  <span className="text-xs bg-purple-200 text-purple-800 px-2 py-1 rounded-full font-semibold">Saved</span>
+                </div>
+                <p className="text-xs text-purple-600 mt-2">Payments will be sent automatically to this saved UPI ID.</p>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Full UPI ID (for Reimbursement)</label>
+                <input
+                  type="text"
+                  required={!formData.claimFromAdvance}
+                  value={formData.paymentNumber}
+                  onChange={(e) => setFormData({...formData, paymentNumber: e.target.value})}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  placeholder="e.g. 9876543210@ybl or name@okaxis"
+                />
+                <p className="text-xs text-gray-500 mt-1">This will be securely saved for all future reimbursements.</p>
+              </div>
+            )
           )}
 
           <div>

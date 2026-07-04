@@ -56,6 +56,34 @@ const Dashboard = () => {
             bg="bg-blue-100 dark:bg-blue-900/50" 
           />
         </div>
+
+        {/* Collector Balances Table for Cashier */}
+        {stats.collectorBalances && stats.collectorBalances.length > 0 && (
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mt-6">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Collector Cash Balances</h2>
+              <p className="text-sm text-slate-500">Physical cash currently held by collectors (Donations - Handed Over)</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                <thead className="bg-slate-50 dark:bg-slate-900/50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Collector</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cash in Hand</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                  {stats.collectorBalances.map((collector) => (
+                    <tr key={collector.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-200">{collector.name} ({collector.username})</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-red-600">₹{collector.cashInHand.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -102,6 +130,17 @@ const Dashboard = () => {
           />
         </Link>
         <StatCard title="Average Donation" value={`₹${Math.round(stats.averageDonation)}`} icon={Users} color="text-purple-600" bg="bg-purple-100 dark:bg-purple-900/50" />
+        
+        {/* Cash In Hand for Collector */}
+        {user?.role === 'COLLECTOR' && (
+          <StatCard 
+            title="Cash to Hand Over" 
+            value={`₹${stats.cashInHand?.toLocaleString() || 0}`} 
+            icon={Wallet} 
+            color="text-red-600" 
+            bg="bg-red-100 dark:bg-red-900/50" 
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -192,6 +231,34 @@ const Dashboard = () => {
           </table>
         </div>
       </div>
+
+      {/* Collector Balances Table for Admin */}
+      {user?.role === 'ADMIN' && stats.collectorBalances && stats.collectorBalances.length > 0 && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mt-6">
+          <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Collector Cash Balances</h2>
+            <p className="text-sm text-slate-500">Physical cash currently held by collectors (Donations - Handed Over)</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+              <thead className="bg-slate-50 dark:bg-slate-900/50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Collector</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cash in Hand</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                {stats.collectorBalances.map((collector) => (
+                  <tr key={collector.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-200">{collector.name} ({collector.username})</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-red-600">₹{collector.cashInHand.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

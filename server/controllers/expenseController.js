@@ -3,7 +3,7 @@ const { uploadImageToGithub } = require('../services/githubService');
 
 exports.createExpense = async (req, res, next) => {
   try {
-    const { amount, description, billPhotoBase64, latitude, longitude, paymentNumber } = req.body;
+    const { amount, description, billPhotoBase64, latitude, longitude, paymentNumber, claimFromAdvance } = req.body;
     
     if (!amount || !description || !billPhotoBase64) {
       return res.status(400).json({ success: false, message: 'Amount, description, and bill photo are required.' });
@@ -35,7 +35,8 @@ exports.createExpense = async (req, res, next) => {
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
         paymentNumber,
-        status: 'PENDING'
+        status: 'PENDING',
+        claimFromAdvance: claimFromAdvance ? true : false
       }
     });
 
@@ -96,7 +97,7 @@ exports.updateExpenseStatus = async (req, res, next) => {
 exports.payExpense = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { paymentMode } = req.body;
+    const { paymentMode, deductFromAdvance } = req.body;
 
     if (req.user.role !== 'CASHIER') {
       return res.status(403).json({ success: false, message: 'Only Cashiers can pay expenses.' });
@@ -119,23 +120,66 @@ exports.payExpense = async (req, res, next) => {
       data: {
         status: 'PAID',
         cashierId: req.user.id,
-        paymentMode
+        paymentMode,
+        deductedFromAdvance: deductFromAdvance ? true : false
       }
     });
 
-    // Automatically create a Money Out CashTransfer
-    await prisma.cashTransfer.create({
-      data: {
-        cashierId: req.user.id,
-        collectorId: expense.userId,
-        type: 'MONEY_OUT',
-        amount: expense.amount,
-        paymentMode,
-        description: `Expense Payout: ${expense.description}`
-      }
-    });
+    // Only create a MONEY_OUT CashTransfer if this was paid out of pocket, not deducted from advance
+    if (!deductFromAdvance) {
+      await prisma.cashTransfer.create({
+        data: {
+          cashierId: req.user.id,
+          collectorId: expense.userId,
+          type: 'MONEY_OUT',
+          amount: expense.amount,
+          paymentMode,
+          description: `Expense Payout: ${expense.description}`
+        }
+      });
+    }
 
     res.json({ success: true, data: updatedExpense });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getAdvanceBalance = async (req, res, next) => {
+  try {
+    // If cashier is asking, they pass a collectorId. If collector is asking, we use their own ID.
+    const collectorId = req.query.collectorId ? parseInt(req.query.collectorId) : req.user.id;
+    
+    // 1. Total Advances Given (MONEY_OUT transfers not labeled as "Expense Payout")
+    const advances = await prisma.cashTransfer.findMany({
+      where: {
+        collectorId: collectorId,
+        type: 'MONEY_OUT',
+        NOT: { description: { startsWith: 'Expense Payout:' } }
+      }
+    });
+    
+    const totalAdvanceReceived = advances.reduce((sum, a) => sum + a.amount, 0);
+
+    // 2. Total Deducted from Advance
+    const expenses = await prisma.expense.findMany({
+      where: {
+        userId: collectorId,
+        status: 'PAID',
+        deductedFromAdvance: true
+      }
+    });
+
+    const totalSpentFromAdvance = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+    res.json({
+      success: true,
+      data: {
+        totalAdvanceReceived,
+        totalSpentFromAdvance,
+        remainingBalance: totalAdvanceReceived - totalSpentFromAdvance
+      }
+    });
   } catch (error) {
     next(error);
   }

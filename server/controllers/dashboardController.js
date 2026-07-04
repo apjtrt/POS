@@ -24,13 +24,38 @@ exports.getDashboardStats = async (req, res, next) => {
       const spent = moneyOut._sum.amount || 0;
       const remaining = received - spent;
 
+      const allCollectors = await prisma.user.findMany({
+        where: { role: 'COLLECTOR' },
+        select: { id: true, name: true, username: true }
+      });
+
+      const collectorBalances = await Promise.all(allCollectors.map(async (collector) => {
+        const [cashDonations, handedOver] = await Promise.all([
+          prisma.donor.aggregate({
+            where: { userId: collector.id, paymentMode: 'Cash' },
+            _sum: { amount: true }
+          }),
+          prisma.cashTransfer.aggregate({
+            where: { collectorId: collector.id, type: 'MONEY_IN' },
+            _sum: { amount: true }
+          })
+        ]);
+        return {
+          id: collector.id,
+          name: collector.name,
+          username: collector.username,
+          cashInHand: (cashDonations._sum.amount || 0) - (handedOver._sum.amount || 0)
+        };
+      }));
+
       return res.json({
         success: true,
         data: {
           isCashier: true,
           totalReceived: received,
           totalSpent: spent,
-          remainingAmount: remaining
+          remainingAmount: remaining,
+          collectorBalances
         }
       });
     }
@@ -56,6 +81,47 @@ exports.getDashboardStats = async (req, res, next) => {
       prisma.donor.groupBy({ by: ['donorName', 'mobile'], where: whereClause, _sum: { amount: true }, orderBy: { _sum: { amount: 'desc' } }, take: 10 })
     ]);
 
+    let collectorBalances = [];
+    let cashInHand = 0;
+
+    if (!isCollector) {
+      const allCollectors = await prisma.user.findMany({
+        where: { role: 'COLLECTOR' },
+        select: { id: true, name: true, username: true }
+      });
+
+      collectorBalances = await Promise.all(allCollectors.map(async (collector) => {
+        const [cashDonations, handedOver] = await Promise.all([
+          prisma.donor.aggregate({
+            where: { userId: collector.id, paymentMode: 'Cash' },
+            _sum: { amount: true }
+          }),
+          prisma.cashTransfer.aggregate({
+            where: { collectorId: collector.id, type: 'MONEY_IN' },
+            _sum: { amount: true }
+          })
+        ]);
+        return {
+          id: collector.id,
+          name: collector.name,
+          username: collector.username,
+          cashInHand: (cashDonations._sum.amount || 0) - (handedOver._sum.amount || 0)
+        };
+      }));
+    } else {
+      const [cashDonations, handedOver] = await Promise.all([
+        prisma.donor.aggregate({
+          where: { userId: req.user.id, paymentMode: 'Cash' },
+          _sum: { amount: true }
+        }),
+        prisma.cashTransfer.aggregate({
+          where: { collectorId: req.user.id, type: 'MONEY_IN' },
+          _sum: { amount: true }
+        })
+      ]);
+      cashInHand = (cashDonations._sum.amount || 0) - (handedOver._sum.amount || 0);
+    }
+
     res.json({
       success: true,
       data: {
@@ -66,7 +132,9 @@ exports.getDashboardStats = async (req, res, next) => {
         recentDonations,
         streetWise: streetWise.map(s => ({ name: s.street, value: s._sum.amount })),
         paymentWise: paymentWise.map(p => ({ name: p.paymentMode, value: p._sum.amount })),
-        topDonors: topDonors.map(t => ({ name: t.donorName, mobile: t.mobile, amount: t._sum.amount }))
+        topDonors: topDonors.map(t => ({ name: t.donorName, mobile: t.mobile, amount: t._sum.amount })),
+        collectorBalances,
+        cashInHand
       }
     });
   } catch (error) {

@@ -2,7 +2,7 @@ const prisma = require('../config/db');
 
 exports.createTransfer = async (req, res, next) => {
   try {
-    const { collectorId, amount, paymentMode, description } = req.body;
+    const { collectorId, amount, paymentMode, description, type } = req.body;
     
     if (!collectorId || !amount || !paymentMode) {
       return res.status(400).json({ success: false, message: 'Collector, amount, and payment mode are required.' });
@@ -18,7 +18,8 @@ exports.createTransfer = async (req, res, next) => {
         collectorId: parseInt(collectorId),
         amount: parseFloat(amount),
         paymentMode,
-        description
+        description,
+        type: type || 'MONEY_IN'
       }
     });
 
