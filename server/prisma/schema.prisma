@@ -10,6 +10,7 @@ datasource db {
 enum Role {
   ADMIN
   COLLECTOR
+  CASHIER
 }
 
 model User {
@@ -22,12 +23,15 @@ model User {
   donations Donor[]
   loginLogs LoginLog[]
   expenses  Expense[]
+  transfersReceived CashTransfer[] @relation("CashierTransfers")
+  transfersSent     CashTransfer[] @relation("CollectorTransfers")
 }
 
 enum ExpenseStatus {
   PENDING
   APPROVED
   REJECTED
+  PAID
 }
 
 model Expense {
@@ -39,6 +43,9 @@ model Expense {
   billPhotoBase64 String        @db.Text
   latitude        Float?
   longitude       Float?
+  paymentNumber   String?       // Collector's GPay/PhonePe number
+  cashierId       Int?          // Which cashier paid this
+  paymentMode     String?       // Cash, UPI
   status          ExpenseStatus @default(PENDING)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -92,4 +99,22 @@ model Settings {
   whatsappMessage String
   upiId           String   @default("default@upi")
   updatedAt       DateTime @updatedAt
+}
+
+enum TransferType {
+  MONEY_IN
+  MONEY_OUT
+}
+
+model CashTransfer {
+  id          Int          @id @default(autoincrement())
+  cashierId   Int
+  cashier     User         @relation("CashierTransfers", fields: [cashierId], references: [id])
+  collectorId Int
+  collector   User         @relation("CollectorTransfers", fields: [collectorId], references: [id])
+  type        TransferType @default(MONEY_IN)
+  amount      Float
+  paymentMode String       // Cash, UPI
+  description String?      @db.Text
+  createdAt   DateTime     @default(now())
 }

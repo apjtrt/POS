@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
-import { IndianRupee, Users, Receipt, TrendingUp, ChevronRight } from 'lucide-react';
+import { IndianRupee, Users, Receipt, TrendingUp, ChevronRight, ArrowDownToLine, ArrowUpFromLine, Wallet } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -28,6 +28,37 @@ const Dashboard = () => {
 
   if (loading) return <div className="animate-pulse">Loading dashboard...</div>;
   if (!stats) return null;
+
+  if (stats.isCashier) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Cashier Dashboard</h1>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatCard 
+            title="Total Amount Received" 
+            value={`₹${stats.totalReceived.toLocaleString()}`} 
+            icon={ArrowDownToLine} 
+            color="text-emerald-600" 
+            bg="bg-emerald-100 dark:bg-emerald-900/50" 
+          />
+          <StatCard 
+            title="Total Amount Spent" 
+            value={`₹${stats.totalSpent.toLocaleString()}`} 
+            icon={ArrowUpFromLine} 
+            color="text-red-600" 
+            bg="bg-red-100 dark:bg-red-900/50" 
+          />
+          <StatCard 
+            title="Remaining Amount" 
+            value={`₹${stats.remainingAmount.toLocaleString()}`} 
+            icon={Wallet} 
+            color="text-blue-600" 
+            bg="bg-blue-100 dark:bg-blue-900/50" 
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

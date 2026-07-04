@@ -4,8 +4,8 @@ const bcrypt = require('bcrypt');
 exports.getCollectors = async (req, res, next) => {
   try {
     const collectors = await prisma.user.findMany({
-      where: { role: 'COLLECTOR' },
-      select: { id: true, username: true, name: true, createdAt: true, _count: { select: { donations: true } } }
+      where: { role: { in: ['COLLECTOR', 'CASHIER'] } },
+      select: { id: true, username: true, name: true, role: true, createdAt: true, _count: { select: { donations: true } } }
     });
     res.json({ success: true, data: collectors });
   } catch (error) {
@@ -15,7 +15,7 @@ exports.getCollectors = async (req, res, next) => {
 
 exports.createCollector = async (req, res, next) => {
   try {
-    const { username, password, name } = req.body;
+    const { username, password, name, role = 'COLLECTOR' } = req.body;
     
     if (!username || !password || !name) {
       return res.status(400).json({ success: false, message: 'Please provide all fields' });
@@ -32,9 +32,9 @@ exports.createCollector = async (req, res, next) => {
         username,
         password: hashedPassword,
         name,
-        role: 'COLLECTOR'
+        role
       },
-      select: { id: true, username: true, name: true, createdAt: true }
+      select: { id: true, username: true, name: true, role: true, createdAt: true }
     });
 
     res.status(201).json({ success: true, data: collector });

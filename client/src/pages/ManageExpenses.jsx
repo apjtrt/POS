@@ -42,8 +42,8 @@ function ManageExpenses() {
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h2 className="text-xl font-bold text-gray-800">Manage Expenses</h2>
-          <div className="flex bg-gray-100 p-1 rounded-lg">
-            {['PENDING', 'APPROVED', 'REJECTED', 'ALL'].map(f => (
+          <div className="flex flex-wrap bg-gray-100 p-1 rounded-lg gap-1">
+            {['PENDING', 'APPROVED', 'PAID', 'REJECTED', 'ALL'].map(f => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
@@ -77,14 +77,18 @@ function ManageExpenses() {
                     <span className="text-2xl font-bold text-gray-800">₹{expense.amount}</span>
                     <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                       expense.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                      expense.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                      expense.status === 'APPROVED' ? 'bg-blue-100 text-blue-700' :
+                      expense.status === 'PAID' ? 'bg-green-100 text-green-700' :
                       'bg-red-100 text-red-700'
                     }`}>
-                      {expense.status}
+                      {expense.status === 'APPROVED' ? 'PENDING PAYOUT' : expense.status}
                     </span>
                   </div>
                   
                   <p className="text-gray-600 font-medium mb-1">Collector: {expense.user.name}</p>
+                  {expense.paymentNumber && (
+                    <p className="text-sm font-semibold text-purple-700 mb-1">Payment No: {expense.paymentNumber}</p>
+                  )}
                   <p className="text-sm text-gray-500 mb-4">{expense.description}</p>
                   
                   <div className="flex items-center text-xs text-gray-400 mb-4 bg-gray-50 p-2 rounded-lg">

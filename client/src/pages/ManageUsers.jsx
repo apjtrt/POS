@@ -9,6 +9,7 @@ const ManageUsers = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [role, setRole] = useState('COLLECTOR');
   const [creating, setCreating] = useState(false);
 
   const fetchUsers = async () => {
@@ -30,11 +31,12 @@ const ManageUsers = () => {
     e.preventDefault();
     setCreating(true);
     try {
-      await api.post('/users/collectors', { username, password, name });
-      toast.success('Collector created successfully');
+      await api.post('/users/collectors', { username, password, name, role });
+      toast.success('User created successfully');
       setUsername('');
       setPassword('');
       setName('');
+      setRole('COLLECTOR');
       fetchUsers();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create collector');
@@ -97,6 +99,17 @@ const ManageUsers = () => {
                   placeholder="Minimum 6 characters"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Role</label>
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                >
+                  <option value="COLLECTOR">Collector</option>
+                  <option value="CASHIER">Cashier</option>
+                </select>
+              </div>
               <button
                 type="submit"
                 disabled={creating}
@@ -117,7 +130,8 @@ const ManageUsers = () => {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Name</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Username</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Donations Collected</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Role</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Activity</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
@@ -138,7 +152,14 @@ const ManageUsers = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                          {u._count.donations} receipts
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            u.role === 'CASHIER' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                          }`}>
+                            {u.role}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                          {u.role === 'COLLECTOR' ? `${u._count?.donations || 0} receipts` : '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button onClick={() => handleDelete(u.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Delete">

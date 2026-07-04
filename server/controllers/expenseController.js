@@ -3,7 +3,7 @@ const { uploadImageToGithub } = require('../services/githubService');
 
 exports.createExpense = async (req, res, next) => {
   try {
-    const { amount, description, billPhotoBase64, latitude, longitude } = req.body;
+    const { amount, description, billPhotoBase64, latitude, longitude, paymentNumber } = req.body;
     
     if (!amount || !description || !billPhotoBase64) {
       return res.status(400).json({ success: false, message: 'Amount, description, and bill photo are required.' });
@@ -26,6 +26,7 @@ exports.createExpense = async (req, res, next) => {
         billPhotoBase64: finalPhotoUrl,
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
+        paymentNumber,
         status: 'PENDING'
       }
     });
@@ -40,8 +41,13 @@ exports.getExpenses = async (req, res, next) => {
   try {
     const { role, id } = req.user;
     
-    // Admins see all expenses, collectors see only theirs
-    const whereClause = role === 'ADMIN' ? {} : { userId: id };
+    // Admins see all expenses, collectors see only theirs, Cashiers see APPROVED or PAID
+    let whereClause = {};
+    if (role === 'COLLECTOR') {
+      whereClause = { userId: id };
+    } else if (role === 'CASHIER') {
+      whereClause = { status: { in: ['APPROVED', 'PAID'] } };
+    }
 
     const expenses = await prisma.expense.findMany({
       where: whereClause,
@@ -74,6 +80,54 @@ exports.updateExpenseStatus = async (req, res, next) => {
     });
 
     res.json({ success: true, data: expense });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.payExpense = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { paymentMode } = req.body;
+
+    if (req.user.role !== 'CASHIER') {
+      return res.status(403).json({ success: false, message: 'Only Cashiers can pay expenses.' });
+    }
+
+    if (!paymentMode) {
+      return res.status(400).json({ success: false, message: 'Payment mode is required' });
+    }
+
+    const expense = await prisma.expense.findUnique({ where: { id: parseInt(id) } });
+    if (!expense) return res.status(404).json({ success: false, message: 'Expense not found' });
+    
+    if (expense.status !== 'APPROVED') {
+      return res.status(400).json({ success: false, message: 'Expense must be approved before payment.' });
+    }
+
+    // Update expense to PAID
+    const updatedExpense = await prisma.expense.update({
+      where: { id: parseInt(id) },
+      data: {
+        status: 'PAID',
+        cashierId: req.user.id,
+        paymentMode
+      }
+    });
+
+    // Automatically create a Money Out CashTransfer
+    await prisma.cashTransfer.create({
+      data: {
+        cashierId: req.user.id,
+        collectorId: expense.userId,
+        type: 'MONEY_OUT',
+        amount: expense.amount,
+        paymentMode,
+        description: `Expense Payout: ${expense.description}`
+      }
+    });
+
+    res.json({ success: true, data: updatedExpense });
   } catch (error) {
     next(error);
   }
