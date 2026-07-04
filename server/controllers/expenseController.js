@@ -26,6 +26,8 @@ exports.createExpense = async (req, res, next) => {
       });
     }
 
+    const isAdvance = claimFromAdvance ? true : false;
+
     const expense = await prisma.expense.create({
       data: {
         userId: req.user.id,
@@ -35,8 +37,9 @@ exports.createExpense = async (req, res, next) => {
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
         paymentNumber,
-        status: 'PENDING',
-        claimFromAdvance: claimFromAdvance ? true : false
+        status: isAdvance ? 'PAID' : 'PENDING',
+        claimFromAdvance: isAdvance,
+        deductedFromAdvance: isAdvance
       }
     });
 

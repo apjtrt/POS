@@ -83,14 +83,18 @@ const Dashboard = () => {
                 <thead className="bg-slate-50 dark:bg-slate-900/50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Collector</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cash in Hand</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Physical Cash in Hand</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Advance Balance</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Advance Spent</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
                   {stats.collectorBalances.map((collector) => (
                     <tr key={collector.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-200">{collector.name} ({collector.username})</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-red-600">₹{collector.cashInHand.toLocaleString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-red-600">₹{collector.cashInHand?.toLocaleString() || 0}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-blue-600">₹{collector.advanceBalance?.toLocaleString() || 0}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-purple-600">₹{collector.advanceSpent?.toLocaleString() || 0}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -258,14 +262,18 @@ const Dashboard = () => {
               <thead className="bg-slate-50 dark:bg-slate-900/50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Collector</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cash in Hand</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Physical Cash in Hand</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Advance Balance</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Advance Spent</th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
                 {stats.collectorBalances.map((collector) => (
                   <tr key={collector.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-200">{collector.name} ({collector.username})</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-red-600">₹{collector.cashInHand.toLocaleString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-red-600">₹{collector.cashInHand?.toLocaleString() || 0}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-blue-600">₹{collector.advanceBalance?.toLocaleString() || 0}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-purple-600">₹{collector.advanceSpent?.toLocaleString() || 0}</td>
                   </tr>
                 ))}
               </tbody>
