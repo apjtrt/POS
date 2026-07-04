@@ -38,6 +38,22 @@ function CashierExpenses() {
     }
   };
 
+  const handleUPIPay = (expense) => {
+    if (!expense.paymentNumber) {
+      toast.error('No UPI number provided by the collector.');
+      return;
+    }
+    
+    const upiLink = `upi://pay?pa=${expense.paymentNumber}&pn=${encodeURIComponent(expense.user.name)}&am=${expense.amount}&cu=INR`;
+    window.location.href = upiLink;
+
+    setTimeout(() => {
+      if (window.confirm('Did the UPI payment succeed? Click OK to mark this expense as Paid.')) {
+        handlePay(expense.id, 'UPI');
+      }
+    }, 1500);
+  };
+
   // Only show APPROVED expenses (Pending Payouts)
   const pendingPayouts = expenses.filter(e => e.status === 'APPROVED');
   const paidOut = expenses.filter(e => e.status === 'PAID');
@@ -95,11 +111,11 @@ function CashierExpenses() {
                       Paid Cash
                     </button>
                     <button
-                      onClick={() => handlePay(expense.id, 'UPI')}
-                      disabled={processingId === expense.id}
+                      onClick={() => handleUPIPay(expense)}
+                      disabled={processingId === expense.id || !expense.paymentNumber}
                       className="flex-1 bg-purple-100 text-purple-700 hover:bg-purple-200 py-2 rounded-lg font-bold transition-colors disabled:opacity-50"
                     >
-                      Paid UPI
+                      Pay via UPI
                     </button>
                   </div>
                 </div>
