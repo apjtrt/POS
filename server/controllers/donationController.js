@@ -1,7 +1,7 @@
 const prisma = require('../config/db');
 const generateReceiptNumber = require('../utils/generateReceiptNumber');
 const { generatePdfReceipt } = require('../services/pdfService');
-const { uploadToGithub } = require('../services/githubService');
+const { uploadToGithub, uploadImageToGithub } = require('../services/githubService');
 
 exports.createDonation = async (req, res, next) => {
   try {
@@ -38,6 +38,15 @@ exports.createDonation = async (req, res, next) => {
     const year = new Date().getFullYear().toString();
     const receiptNumber = await generateReceiptNumber(year);
 
+    let finalUpiUrl = upiScreenshot || null;
+    if (upiScreenshot && upiScreenshot.length > 500) {
+      const filename = `upi-${receiptNumber}-${Date.now()}.jpg`;
+      const githubUrl = await uploadImageToGithub(upiScreenshot, filename, 'upi-screenshots');
+      if (githubUrl) {
+        finalUpiUrl = githubUrl;
+      }
+    }
+
     const donor = await prisma.donor.create({
       data: {
         receiptNumber,
@@ -54,7 +63,7 @@ exports.createDonation = async (req, res, next) => {
   userId: req.user.id,
   latitude: latitude ? parseFloat(latitude) : null,
   longitude: longitude ? parseFloat(longitude) : null,
-  upiScreenshot: upiScreenshot || null
+  upiScreenshot: finalUpiUrl
 }
     });
 

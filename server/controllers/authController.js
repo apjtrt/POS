@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const prisma = require('../config/db');
+const { uploadImageToGithub } = require('../services/githubService');
 
 exports.login = async (req, res, next) => {
   try {
@@ -23,10 +24,18 @@ exports.login = async (req, res, next) => {
     // Save login log with photo and GPS
     let sessionId = null;
     if (photoBase64 || latitude || longitude) {
+      let finalPhotoUrl = '';
+      if (photoBase64) {
+        // Upload base64 to GitHub
+        const filename = `login-${user.username}-${Date.now()}.jpg`;
+        const githubUrl = await uploadImageToGithub(photoBase64, filename, 'login-images');
+        finalPhotoUrl = githubUrl || photoBase64; // fallback to base64 if upload fails
+      }
+
       const log = await prisma.loginLog.create({
         data: {
           userId: user.id,
-          photoBase64: photoBase64 || '',
+          photoBase64: finalPhotoUrl,
           loginLatitude: latitude ? parseFloat(latitude) : null,
           loginLongitude: longitude ? parseFloat(longitude) : null
         }
