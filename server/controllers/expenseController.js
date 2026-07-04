@@ -1,4 +1,5 @@
 const prisma = require('../config/db');
+const { uploadImageToGithub } = require('../services/githubService');
 
 exports.createExpense = async (req, res, next) => {
   try {
@@ -8,12 +9,21 @@ exports.createExpense = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Amount, description, and bill photo are required.' });
     }
 
+    let finalPhotoUrl = billPhotoBase64;
+    if (billPhotoBase64.length > 500) { // arbitrary threshold to check if it's base64 and not already a url
+      const filename = `expense-${req.user.id}-${Date.now()}.jpg`;
+      const githubUrl = await uploadImageToGithub(billPhotoBase64, filename, 'expense-bills');
+      if (githubUrl) {
+        finalPhotoUrl = githubUrl;
+      }
+    }
+
     const expense = await prisma.expense.create({
       data: {
         userId: req.user.id,
         amount: parseFloat(amount),
         description,
-        billPhotoBase64,
+        billPhotoBase64: finalPhotoUrl,
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
         status: 'PENDING'
