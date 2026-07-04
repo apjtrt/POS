@@ -48,6 +48,8 @@ model Expense {
   cashierId       Int?          // Which cashier paid this
   paymentMode     String?       // Cash, UPI
   status          ExpenseStatus @default(PENDING)
+  deductedFromAdvance Boolean @default(false)
+  claimFromAdvance    Boolean @default(false)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 }

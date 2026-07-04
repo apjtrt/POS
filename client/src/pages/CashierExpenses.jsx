@@ -23,13 +23,16 @@ function CashierExpenses() {
     }
   };
 
-  const handlePay = async (id, paymentMode) => {
-    if (!window.confirm(`Are you sure you want to mark this as paid via ${paymentMode}?`)) return;
+  const handlePay = async (id, paymentMode, deductFromAdvance = false) => {
+    const msg = deductFromAdvance 
+      ? `Are you sure you want to deduct this from the Collector's advance balance?` 
+      : `Are you sure you want to mark this as paid via ${paymentMode}?`;
+    if (!window.confirm(msg)) return;
 
     setProcessingId(id);
     try {
-      await api.put(`/expenses/${id}/pay`, { paymentMode });
-      toast.success('Payout recorded successfully');
+      await api.put(`/expenses/${id}/pay`, { paymentMode, deductFromAdvance });
+      toast.success(deductFromAdvance ? 'Deducted from advance' : 'Payout recorded successfully');
       fetchExpenses();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to process payout');
@@ -94,7 +97,12 @@ function CashierExpenses() {
                   </div>
                   
                   <p className="text-gray-600 font-medium mb-1">Pay to: {expense.user.name}</p>
-                  {expense.paymentNumber ? (
+                  {expense.claimFromAdvance ? (
+                    <div className="flex items-center text-sm font-bold text-blue-700 bg-blue-50 p-2 rounded-lg mb-2">
+                      <Banknote className="w-4 h-4 mr-2" />
+                      Paid from Advance (Deduct)
+                    </div>
+                  ) : expense.paymentNumber ? (
                     <div className="flex items-center text-sm font-bold text-purple-700 bg-purple-50 p-2 rounded-lg mb-2">
                       <Smartphone className="w-4 h-4 mr-2" />
                       {expense.paymentNumber}
@@ -105,20 +113,31 @@ function CashierExpenses() {
                   
                   <p className="text-sm text-gray-500 mb-4 h-10 overflow-hidden text-ellipsis">{expense.description}</p>
                   
-                  <div className="flex gap-2 pt-4 border-t border-gray-100">
+                  <div className="flex flex-col gap-2 pt-4 border-t border-gray-100">
+                    {!expense.claimFromAdvance && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handlePay(expense.id, 'Cash')}
+                          disabled={processingId === expense.id}
+                          className="flex-1 bg-gray-100 text-gray-700 hover:bg-gray-200 py-2 rounded-lg font-bold transition-colors disabled:opacity-50 text-sm"
+                        >
+                          Paid Cash
+                        </button>
+                        <button
+                          onClick={() => handleUPIPay(expense)}
+                          disabled={processingId === expense.id || !expense.paymentNumber}
+                          className="flex-1 bg-purple-100 text-purple-700 hover:bg-purple-200 py-2 rounded-lg font-bold transition-colors disabled:opacity-50 text-sm"
+                        >
+                          Pay via UPI
+                        </button>
+                      </div>
+                    )}
                     <button
-                      onClick={() => handlePay(expense.id, 'Cash')}
+                      onClick={() => handlePay(expense.id, 'Advance', true)}
                       disabled={processingId === expense.id}
-                      className="flex-1 bg-gray-100 text-gray-700 hover:bg-gray-200 py-2 rounded-lg font-bold transition-colors disabled:opacity-50"
+                      className="w-full bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 py-2 rounded-lg font-bold transition-colors disabled:opacity-50 text-sm"
                     >
-                      Paid Cash
-                    </button>
-                    <button
-                      onClick={() => handleUPIPay(expense)}
-                      disabled={processingId === expense.id || !expense.paymentNumber}
-                      className="flex-1 bg-purple-100 text-purple-700 hover:bg-purple-200 py-2 rounded-lg font-bold transition-colors disabled:opacity-50"
-                    >
-                      Pay via UPI
+                      Deduct from Advance
                     </button>
                   </div>
                 </div>
