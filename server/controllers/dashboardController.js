@@ -9,7 +9,7 @@ exports.getDashboardStats = async (req, res, next) => {
     const isCashier = req.user.role === 'CASHIER';
 
     if (isCashier) {
-      const [moneyIn, moneyOut] = await Promise.all([
+      const [moneyIn, moneyOut, upiDonations, allDonations] = await Promise.all([
         prisma.cashTransfer.aggregate({
           where: { cashierId: req.user.id, type: 'MONEY_IN' },
           _sum: { amount: true }
@@ -17,12 +17,21 @@ exports.getDashboardStats = async (req, res, next) => {
         prisma.cashTransfer.aggregate({
           where: { cashierId: req.user.id, type: 'MONEY_OUT' },
           _sum: { amount: true }
+        }),
+        prisma.donor.aggregate({
+          where: { paymentMode: 'UPI' },
+          _sum: { amount: true }
+        }),
+        prisma.donor.aggregate({
+          _sum: { amount: true }
         })
       ]);
 
       const received = moneyIn._sum.amount || 0;
       const spent = moneyOut._sum.amount || 0;
       const remaining = received - spent;
+      const totalUpi = upiDonations._sum.amount || 0;
+      const totalAll = allDonations._sum.amount || 0;
 
       const allCollectors = await prisma.user.findMany({
         where: { role: 'COLLECTOR' },
@@ -55,6 +64,8 @@ exports.getDashboardStats = async (req, res, next) => {
           totalReceived: received,
           totalSpent: spent,
           remainingAmount: remaining,
+          totalUpi,
+          totalAll,
           collectorBalances
         }
       });
