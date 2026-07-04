@@ -39,7 +39,7 @@ exports.getDashboardStats = async (req, res, next) => {
       });
 
       const collectorBalances = await Promise.all(allCollectors.map(async (collector) => {
-        const [cashDonations, handedOver] = await Promise.all([
+        const [cashDonations, handedOver, advanceTransfers, advanceExpenses] = await Promise.all([
           prisma.donor.aggregate({
             where: { userId: collector.id, paymentMode: 'Cash' },
             _sum: { amount: true }
@@ -47,13 +47,36 @@ exports.getDashboardStats = async (req, res, next) => {
           prisma.cashTransfer.aggregate({
             where: { collectorId: collector.id, type: 'MONEY_IN' },
             _sum: { amount: true }
+          }),
+          prisma.cashTransfer.aggregate({
+            where: { 
+              collectorId: collector.id, 
+              type: 'MONEY_OUT',
+              NOT: { description: { startsWith: 'Expense Payout:' } }
+            },
+            _sum: { amount: true }
+          }),
+          prisma.expense.aggregate({
+            where: {
+              userId: collector.id,
+              status: 'PAID',
+              deductedFromAdvance: true
+            },
+            _sum: { amount: true }
           })
         ]);
+
+        const advanceReceived = advanceTransfers._sum.amount || 0;
+        const advanceSpent = advanceExpenses._sum.amount || 0;
+        const advanceBalance = advanceReceived - advanceSpent;
+
         return {
           id: collector.id,
           name: collector.name,
           username: collector.username,
-          cashInHand: (cashDonations._sum.amount || 0) - (handedOver._sum.amount || 0)
+          cashInHand: (cashDonations._sum.amount || 0) - (handedOver._sum.amount || 0),
+          advanceBalance,
+          advanceSpent
         };
       }));
 
@@ -102,7 +125,7 @@ exports.getDashboardStats = async (req, res, next) => {
       });
 
       collectorBalances = await Promise.all(allCollectors.map(async (collector) => {
-        const [cashDonations, handedOver] = await Promise.all([
+        const [cashDonations, handedOver, advanceTransfers, advanceExpenses] = await Promise.all([
           prisma.donor.aggregate({
             where: { userId: collector.id, paymentMode: 'Cash' },
             _sum: { amount: true }
@@ -110,13 +133,36 @@ exports.getDashboardStats = async (req, res, next) => {
           prisma.cashTransfer.aggregate({
             where: { collectorId: collector.id, type: 'MONEY_IN' },
             _sum: { amount: true }
+          }),
+          prisma.cashTransfer.aggregate({
+            where: { 
+              collectorId: collector.id, 
+              type: 'MONEY_OUT',
+              NOT: { description: { startsWith: 'Expense Payout:' } }
+            },
+            _sum: { amount: true }
+          }),
+          prisma.expense.aggregate({
+            where: {
+              userId: collector.id,
+              status: 'PAID',
+              deductedFromAdvance: true
+            },
+            _sum: { amount: true }
           })
         ]);
+
+        const advanceReceived = advanceTransfers._sum.amount || 0;
+        const advanceSpent = advanceExpenses._sum.amount || 0;
+        const advanceBalance = advanceReceived - advanceSpent;
+
         return {
           id: collector.id,
           name: collector.name,
           username: collector.username,
-          cashInHand: (cashDonations._sum.amount || 0) - (handedOver._sum.amount || 0)
+          cashInHand: (cashDonations._sum.amount || 0) - (handedOver._sum.amount || 0),
+          advanceBalance,
+          advanceSpent
         };
       }));
     } else {

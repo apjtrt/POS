@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, MapPin, CheckCircle, XCircle, Search } from 'lucide-react';
+import { Loader2, MapPin, CheckCircle, XCircle, Search, Download } from 'lucide-react';
 import { toast } from 'react-toastify';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import api from '../services/api';
 
 function ManageExpenses() {
@@ -37,21 +39,65 @@ function ManageExpenses() {
 
   const filteredExpenses = expenses.filter(e => filter === 'ALL' || e.status === filter);
 
+  const generatePDF = () => {
+    if (filteredExpenses.length === 0) {
+      toast.warning('No expenses to export!');
+      return;
+    }
+
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.text(`Expense Report - ${filter} Expenses`, 14, 22);
+    
+    const totalAmount = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+    const tableData = filteredExpenses.map(exp => [
+      new Date(exp.createdAt).toLocaleDateString(),
+      exp.description,
+      `Rs. ${exp.amount}`
+    ]);
+    
+    tableData.push([
+      { content: 'Total', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } },
+      { content: `Rs. ${totalAmount}`, styles: { fontStyle: 'bold' } }
+    ]);
+
+    doc.autoTable({
+      startY: 30,
+      head: [['Date', 'Expense Description', 'Amount']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [59, 130, 246] }
+    });
+
+    doc.save(`Expenses_Report_${filter}.pdf`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h2 className="text-xl font-bold text-gray-800">Manage Expenses</h2>
-          <div className="flex flex-wrap bg-gray-100 p-1 rounded-lg gap-1">
-            {['PENDING', 'APPROVED', 'PAID', 'REJECTED', 'ALL'].map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${filter === f ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                {f}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap bg-gray-100 p-1 rounded-lg gap-1">
+              {['PENDING', 'APPROVED', 'PAID', 'REJECTED', 'ALL'].map(f => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${filter === f ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={generatePDF}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Generate PDF
+            </button>
           </div>
         </div>
 
