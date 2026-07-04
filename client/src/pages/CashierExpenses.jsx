@@ -44,9 +44,10 @@ function CashierExpenses() {
       return;
     }
     
-    // Some UPI apps might fail if the 'pn' (payee name) doesn't exactly match the bank name.
-    // Using a generic payee name to prevent name-matching errors.
-    const upiLink = `upi://pay?pa=${expense.paymentNumber}&pn=ExpenseReimbursement&am=${expense.amount}&cu=INR`;
+    // We are completely omitting the 'pn' (Payee Name) parameter. 
+    // This forces the UPI app to fetch the real bank name from the NPCI server itself,
+    // avoiding any "name mismatch" errors caused by passing a hardcoded string.
+    const upiLink = `upi://pay?pa=${expense.paymentNumber}&am=${expense.amount}&cu=INR`;
     window.location.href = upiLink;
 
     setTimeout(() => {

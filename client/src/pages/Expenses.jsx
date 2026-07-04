@@ -4,10 +4,11 @@ import { toast } from 'react-toastify';
 import api from '../services/api';
 
 function Expenses() {
+  const { user, login } = useAuth(); // Need useAuth to fetch user and potentially refresh it
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState({ amount: '', description: '', phone: '', provider: '@ybl' });
+  const [formData, setFormData] = useState({ amount: '', description: '', paymentNumber: '' });
   const [photoBase64, setPhotoBase64] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -80,17 +81,25 @@ function Expenses() {
 
   const submitData = async (latitude, longitude) => {
     try {
+      const payloadPaymentNumber = user?.upiId || formData.paymentNumber;
+      
       await api.post('/expenses', {
         amount: formData.amount,
         description: formData.description,
-        paymentNumber: formData.phone + formData.provider,
+        paymentNumber: payloadPaymentNumber,
         billPhotoBase64: photoBase64,
         latitude,
         longitude
       });
       
       toast.success('Expense submitted for approval!');
-      setFormData({ amount: '', description: '', phone: '', provider: '@ybl' });
+      
+      // Refresh user to get the newly saved upiId in context
+      if (!user?.upiId) {
+        setTimeout(() => window.location.reload(), 1500);
+      }
+
+      setFormData({ amount: '', description: '', paymentNumber: '' });
       setPhotoBase64(null);
       fetchExpenses(); // Refresh list
     } catch (error) {
@@ -145,31 +154,29 @@ function Expenses() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number (for Reimbursement)</label>
-            <div className="flex gap-2">
-              <input
-                type="tel"
-                required
-                pattern="[0-9]{10}"
-                maxLength="10"
-                value={formData.phone}
-                onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '')})}
-                className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                placeholder="10-digit number"
-              />
-              <select
-                value={formData.provider}
-                onChange={(e) => setFormData({...formData, provider: e.target.value})}
-                className="w-1/3 px-3 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              >
-                <option value="@ybl">PhonePe</option>
-                <option value="@okaxis">GPay</option>
-                <option value="@paytm">Paytm</option>
-                <option value="@apl">Amazon Pay</option>
-              </select>
+          {user?.upiId ? (
+            <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
+              <label className="block text-sm font-medium text-purple-900 mb-1">Reimbursement Payment Address</label>
+              <div className="flex items-center justify-between">
+                <p className="text-purple-700 font-bold">{user.upiId}</p>
+                <span className="text-xs bg-purple-200 text-purple-800 px-2 py-1 rounded-full font-semibold">Saved</span>
+              </div>
+              <p className="text-xs text-purple-600 mt-2">Payments will be sent automatically to this saved UPI ID.</p>
             </div>
-          </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Full UPI ID (for Reimbursement)</label>
+              <input
+                type="text"
+                required
+                value={formData.paymentNumber}
+                onChange={(e) => setFormData({...formData, paymentNumber: e.target.value})}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                placeholder="e.g. 9876543210@ybl or name@okaxis"
+              />
+              <p className="text-xs text-gray-500 mt-1">This will be securely saved for all future reimbursements.</p>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Bill / Receipt Photo</label>

@@ -51,7 +51,7 @@ exports.login = async (req, res, next) => {
       success: true,
       token,
       sessionId,
-      user: { id: user.id, username: user.username, role: user.role, name: user.name }
+      user: { id: user.id, username: user.username, role: user.role, name: user.name, upiId: user.upiId }
     });
   } catch (error) {
     next(error);
@@ -83,7 +83,7 @@ exports.getMe = async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { id: true, username: true, role: true, name: true }
+      select: { id: true, username: true, role: true, name: true, upiId: true }
     });
     res.json({ success: true, user });
   } catch (error) {
