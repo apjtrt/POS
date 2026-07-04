@@ -44,7 +44,9 @@ function CashierExpenses() {
       return;
     }
     
-    const upiLink = `upi://pay?pa=${expense.paymentNumber}&pn=${encodeURIComponent(expense.user.name)}&am=${expense.amount}&cu=INR`;
+    // Some UPI apps might fail if the 'pn' (payee name) doesn't exactly match the bank name.
+    // Using a generic payee name to prevent name-matching errors.
+    const upiLink = `upi://pay?pa=${expense.paymentNumber}&pn=ExpenseReimbursement&am=${expense.amount}&cu=INR`;
     window.location.href = upiLink;
 
     setTimeout(() => {

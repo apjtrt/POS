@@ -7,7 +7,7 @@ function Expenses() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState({ amount: '', description: '', paymentNumber: '' });
+  const [formData, setFormData] = useState({ amount: '', description: '', phone: '', provider: '@ybl' });
   const [photoBase64, setPhotoBase64] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -81,14 +81,16 @@ function Expenses() {
   const submitData = async (latitude, longitude) => {
     try {
       await api.post('/expenses', {
-        ...formData,
+        amount: formData.amount,
+        description: formData.description,
+        paymentNumber: formData.phone + formData.provider,
         billPhotoBase64: photoBase64,
         latitude,
         longitude
       });
       
       toast.success('Expense submitted for approval!');
-      setFormData({ amount: '', description: '', paymentNumber: '' });
+      setFormData({ amount: '', description: '', phone: '', provider: '@ybl' });
       setPhotoBase64(null);
       fetchExpenses(); // Refresh list
     } catch (error) {
@@ -144,15 +146,29 @@ function Expenses() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">GPay / PhonePe Number (for Reimbursement)</label>
-            <input
-              type="text"
-              required
-              value={formData.paymentNumber}
-              onChange={(e) => setFormData({...formData, paymentNumber: e.target.value})}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              placeholder="e.g. 9876543210"
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number (for Reimbursement)</label>
+            <div className="flex gap-2">
+              <input
+                type="tel"
+                required
+                pattern="[0-9]{10}"
+                maxLength="10"
+                value={formData.phone}
+                onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '')})}
+                className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                placeholder="10-digit number"
+              />
+              <select
+                value={formData.provider}
+                onChange={(e) => setFormData({...formData, provider: e.target.value})}
+                className="w-1/3 px-3 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              >
+                <option value="@ybl">PhonePe</option>
+                <option value="@okaxis">GPay</option>
+                <option value="@paytm">Paytm</option>
+                <option value="@apl">Amazon Pay</option>
+              </select>
+            </div>
           </div>
 
           <div>
