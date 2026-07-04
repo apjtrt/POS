@@ -42,7 +42,7 @@ const MainLayout = ({ children }) => {
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200 dark:border-slate-700">
-          <span className="text-lg font-bold text-slate-900 dark:text-white truncate">Abdul Kalam Assoc.</span>
+          <span className="text-lg font-bold text-slate-900 dark:text-white truncate">Abdul Kalam Youth Welfare Association</span>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 text-slate-500 hover:text-slate-700">
             <X size={20} />
           </button>
