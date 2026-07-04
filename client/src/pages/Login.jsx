@@ -11,7 +11,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
-  
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [stream, setStream] = useState(null);
@@ -34,8 +34,8 @@ const Login = () => {
 
   const startCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user', width: 320, height: 240 } 
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: 320, height: 240 }
       });
       setStream(mediaStream);
       if (videoRef.current) {
@@ -49,14 +49,14 @@ const Login = () => {
 
   const handleCaptureAndLogin = async () => {
     if (!videoRef.current || !canvasRef.current) return;
-    
+
     // Draw current video frame to canvas
     const context = canvasRef.current.getContext('2d');
     context.drawImage(videoRef.current, 0, 0, 320, 240);
-    
+
     // Compress heavily to keep database light (JPEG 0.5 quality)
     const photoBase64 = canvasRef.current.toDataURL('image/jpeg', 0.5);
-    
+
     // Stop camera
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
@@ -64,7 +64,7 @@ const Login = () => {
     }
 
     setLoading(true);
-    
+
     // Get location
     const getPosition = () => new Promise((resolve) => {
       if (!navigator.geolocation) return resolve(null);
@@ -99,7 +99,8 @@ const Login = () => {
             {step === 1 ? 'Admin Login' : 'Secure Verification'}
           </h2>
           <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
-            Dr. A.P.J. Abdul Kalam Association
+            Dr. A.P.J. Abdul Kalam Youth Welfare Association Tiruttani
+            Created by MANOJ P | <a href="https://pmjprojects.vercel.app" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">PMJ Projects</a>
           </p>
         </div>
 
@@ -146,16 +147,16 @@ const Login = () => {
         {step === 2 && (
           <div className="mt-8 space-y-6">
             <div className="relative rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-900 aspect-video flex items-center justify-center border border-slate-300 dark:border-slate-600">
-              <video 
-                ref={videoRef} 
-                autoPlay 
-                playsInline 
-                muted 
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
                 className="w-full h-full object-cover transform -scale-x-100" // Mirror effect
               ></video>
               <canvas ref={canvasRef} width="320" height="240" className="hidden" />
             </div>
-            
+
             <p className="text-center text-xs text-slate-500 dark:text-slate-400">
               Please align your face in the camera. A photo will be securely logged with this session.
             </p>

@@ -99,10 +99,17 @@ const MainLayout = ({ children }) => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">
-          <div className="max-w-7xl mx-auto">
-            {children}
+        <main className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900 flex flex-col">
+          <div className="flex-1 p-4 sm:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto">
+              {children}
+            </div>
           </div>
+          <footer className="py-4 text-center text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+            <p>
+              Created by manoj | <a href="https://pmjprojects.vercel.app" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">PMJ Projects</a>
+            </p>
+          </footer>
         </main>
       </div>
     </div>
