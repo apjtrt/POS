@@ -35,39 +35,39 @@ const Dashboard = () => {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Cashier Dashboard</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <StatCard 
-            title="Total Physical Cash Received" 
-            value={`₹${stats.totalReceived.toLocaleString()}`} 
-            icon={ArrowDownToLine} 
-            color="text-emerald-600" 
-            bg="bg-emerald-100 dark:bg-emerald-900/50" 
+            title="Total Revenue (UPI + Cash)" 
+            value={`₹${stats.totalAll?.toLocaleString() || 0}`} 
+            icon={IndianRupee} 
+            color="text-indigo-600" 
+            bg="bg-indigo-100 dark:bg-indigo-900/50" 
           />
           <StatCard 
-            title="Total Amount Spent" 
+            title="Total Expense" 
             value={`₹${stats.totalSpent.toLocaleString()}`} 
             icon={ArrowUpFromLine} 
             color="text-red-600" 
             bg="bg-red-100 dark:bg-red-900/50" 
           />
           <StatCard 
-            title="Remaining Physical Cash" 
-            value={`₹${stats.remainingAmount.toLocaleString()}`} 
+            title="Total Remaining Amount" 
+            value={`₹${((stats.totalAll || 0) - (stats.totalSpent || 0)).toLocaleString()}`} 
             icon={Wallet} 
             color="text-blue-600" 
             bg="bg-blue-100 dark:bg-blue-900/50" 
           />
           <StatCard 
-            title="Total Bank / UPI Collection" 
+            title="Amount Received as Cash" 
+            value={`₹${stats.totalReceived.toLocaleString()}`} 
+            icon={ArrowDownToLine} 
+            color="text-emerald-600" 
+            bg="bg-emerald-100 dark:bg-emerald-900/50" 
+          />
+          <StatCard 
+            title="Amount Received in UPI" 
             value={`₹${stats.totalUpi?.toLocaleString() || 0}`} 
             icon={IndianRupee} 
             color="text-purple-600" 
             bg="bg-purple-100 dark:bg-purple-900/50" 
-          />
-          <StatCard 
-            title="Total Association Income" 
-            value={`₹${stats.totalAll?.toLocaleString() || 0}`} 
-            icon={IndianRupee} 
-            color="text-indigo-600" 
-            bg="bg-indigo-100 dark:bg-indigo-900/50" 
           />
         </div>
 
