@@ -34,40 +34,40 @@ const Dashboard = () => {
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Cashier Dashboard</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          <StatCard 
-            title="Total Revenue (UPI + Cash)" 
-            value={`₹${((stats.totalUpi || 0) + (stats.totalReceived || 0)).toLocaleString()}`} 
-            icon={IndianRupee} 
-            color="text-indigo-600" 
-            bg="bg-indigo-100 dark:bg-indigo-900/50" 
+          <StatCard
+            title="Amount In (UPI + Cash)"
+            value={`₹${((stats.totalUpi || 0) + (stats.totalReceived || 0)).toLocaleString()}`}
+            icon={IndianRupee}
+            color="text-indigo-600"
+            bg="bg-indigo-100 dark:bg-indigo-900/50"
           />
-          <StatCard 
-            title="Total Expense" 
-            value={`₹${stats.totalSpent.toLocaleString()}`} 
-            icon={ArrowUpFromLine} 
-            color="text-red-600" 
-            bg="bg-red-100 dark:bg-red-900/50" 
+          <StatCard
+            title="Amount Out"
+            value={`₹${stats.totalSpent.toLocaleString()}`}
+            icon={ArrowUpFromLine}
+            color="text-red-600"
+            bg="bg-red-100 dark:bg-red-900/50"
           />
-          <StatCard 
-            title="Total Remaining Amount" 
-            value={`₹${(((stats.totalUpi || 0) + (stats.totalReceived || 0)) - (stats.totalSpent || 0)).toLocaleString()}`} 
-            icon={Wallet} 
-            color="text-blue-600" 
-            bg="bg-blue-100 dark:bg-blue-900/50" 
+          <StatCard
+            title="Remaining Amount"
+            value={`₹${(((stats.totalUpi || 0) + (stats.totalReceived || 0)) - (stats.totalSpent || 0)).toLocaleString()}`}
+            icon={Wallet}
+            color="text-blue-600"
+            bg="bg-blue-100 dark:bg-blue-900/50"
           />
-          <StatCard 
-            title="Amount Received as Cash" 
-            value={`₹${stats.totalReceived.toLocaleString()}`} 
-            icon={ArrowDownToLine} 
-            color="text-emerald-600" 
-            bg="bg-emerald-100 dark:bg-emerald-900/50" 
+          <StatCard
+            title="Amount Received as Cash"
+            value={`₹${stats.totalReceived.toLocaleString()}`}
+            icon={ArrowDownToLine}
+            color="text-emerald-600"
+            bg="bg-emerald-100 dark:bg-emerald-900/50"
           />
-          <StatCard 
-            title="Amount Received in UPI" 
-            value={`₹${stats.totalUpi?.toLocaleString() || 0}`} 
-            icon={IndianRupee} 
-            color="text-purple-600" 
-            bg="bg-purple-100 dark:bg-purple-900/50" 
+          <StatCard
+            title="Amount Received in UPI"
+            value={`₹${stats.totalUpi?.toLocaleString() || 0}`}
+            icon={IndianRupee}
+            color="text-purple-600"
+            bg="bg-purple-100 dark:bg-purple-900/50"
           />
         </div>
 
@@ -109,17 +109,17 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Dashboard Overview</h1>
-      
+
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {user?.role === 'ADMIN' ? (
           <Link to="/reports" className="block transform transition-transform hover:scale-105">
-            <StatCard 
-              title="Total Donation (Click for Details)" 
-              value={`₹${stats.totalDonation}`} 
-              icon={IndianRupee} 
-              color="text-blue-600" 
-              bg="bg-blue-100 dark:bg-blue-900/50" 
+            <StatCard
+              title="Total Donation (Click for Details)"
+              value={`₹${stats.totalDonation}`}
+              icon={IndianRupee}
+              color="text-blue-600"
+              bg="bg-blue-100 dark:bg-blue-900/50"
               rightIcon={<ChevronRight className="text-slate-400 ml-auto" />}
             />
           </Link>
@@ -127,36 +127,36 @@ const Dashboard = () => {
           <StatCard title="Total Donation" value={`₹${stats.totalDonation}`} icon={IndianRupee} color="text-blue-600" bg="bg-blue-100 dark:bg-blue-900/50" />
         )}
         <Link to="/reports?filter=today" className="block transform transition-transform hover:scale-105">
-          <StatCard 
-            title="Today's Collection (Click for Details)" 
-            value={`₹${stats.todayCollection}`} 
-            icon={TrendingUp} 
-            color="text-emerald-600" 
-            bg="bg-emerald-100 dark:bg-emerald-900/50" 
+          <StatCard
+            title="Today's Collection (Click for Details)"
+            value={`₹${stats.todayCollection}`}
+            icon={TrendingUp}
+            color="text-emerald-600"
+            bg="bg-emerald-100 dark:bg-emerald-900/50"
             rightIcon={<ChevronRight className="text-slate-400 ml-auto" />}
           />
         </Link>
-        
+
         <Link to="/donations/history" className="block transform transition-transform hover:scale-105">
-          <StatCard 
-            title="Total Receipts (Click for Details)" 
-            value={stats.totalReceipts} 
-            icon={Receipt} 
-            color="text-amber-600" 
-            bg="bg-amber-100 dark:bg-amber-900/50" 
+          <StatCard
+            title="Total Receipts (Click for Details)"
+            value={stats.totalReceipts}
+            icon={Receipt}
+            color="text-amber-600"
+            bg="bg-amber-100 dark:bg-amber-900/50"
             rightIcon={<ChevronRight className="text-slate-400 ml-auto" />}
           />
         </Link>
         <StatCard title="Average Donation" value={`₹${Math.round(stats.averageDonation)}`} icon={Users} color="text-purple-600" bg="bg-purple-100 dark:bg-purple-900/50" />
-        
+
         {/* Cash In Hand for Collector */}
         {user?.role === 'COLLECTOR' && (
-          <StatCard 
-            title="Cash to Hand Over" 
-            value={`₹${stats.cashInHand?.toLocaleString() || 0}`} 
-            icon={Wallet} 
-            color="text-red-600" 
-            bg="bg-red-100 dark:bg-red-900/50" 
+          <StatCard
+            title="Cash to Hand Over"
+            value={`₹${stats.cashInHand?.toLocaleString() || 0}`}
+            icon={Wallet}
+            color="text-red-600"
+            bg="bg-red-100 dark:bg-red-900/50"
           />
         )}
       </div>
@@ -169,9 +169,9 @@ const Dashboard = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.streetWise}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.2} />
-                <XAxis dataKey="name" tick={{fill: '#64748b'}} />
-                <YAxis tick={{fill: '#64748b'}} />
-                <Tooltip 
+                <XAxis dataKey="name" tick={{ fill: '#64748b' }} />
+                <YAxis tick={{ fill: '#64748b' }} />
+                <Tooltip
                   contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
                   itemStyle={{ color: '#fff' }}
                 />
@@ -200,7 +200,7 @@ const Dashboard = () => {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
                 />
               </PieChart>
