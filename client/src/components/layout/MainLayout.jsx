@@ -8,11 +8,19 @@ const MainLayout = ({ children }) => {
   const location = useLocation();
   const { logout, user } = useAuth();
 
-  let navigation = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'New Receipt', href: '/donations/new', icon: FileText },
-    { name: 'Receipt History', href: '/donations/history', icon: History },
-  ];
+  let navigation = [];
+
+  if (user?.role === 'CASHIER') {
+    navigation.push({ name: 'Dashboard', href: '/', icon: LayoutDashboard });
+    navigation.push({ name: 'Pending Payouts', href: '/cashier/expenses', icon: Receipt });
+    navigation.push({ name: 'Record Transfer', href: '/transfers/new', icon: FileText });
+    navigation.push({ name: 'Transfer History', href: '/transfers', icon: History });
+  } else {
+    // Admin and Collector have standard receipt routes
+    navigation.push({ name: 'Dashboard', href: '/', icon: LayoutDashboard });
+    navigation.push({ name: 'New Receipt', href: '/donations/new', icon: FileText });
+    navigation.push({ name: 'Receipt History', href: '/donations/history', icon: History });
+  }
 
   if (user?.role === 'COLLECTOR') {
     navigation.push({ name: 'My Expenses', href: '/expenses', icon: Receipt });
@@ -20,7 +28,8 @@ const MainLayout = ({ children }) => {
 
   if (user?.role === 'ADMIN') {
     navigation.push({ name: 'Manage Expenses', href: '/manage-expenses', icon: Receipt });
-    navigation.push({ name: 'Manage Collectors', href: '/users', icon: SettingsIcon });
+    navigation.push({ name: 'Transfer History', href: '/transfers', icon: History });
+    navigation.push({ name: 'Manage Users', href: '/users', icon: SettingsIcon });
     navigation.push({ name: 'Security Logs', href: '/security-logs', icon: ShieldAlert });
     navigation.push({ name: 'Settings', href: '/settings', icon: SettingsIcon });
   }

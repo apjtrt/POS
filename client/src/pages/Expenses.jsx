@@ -7,7 +7,7 @@ function Expenses() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState({ amount: '', description: '' });
+  const [formData, setFormData] = useState({ amount: '', description: '', paymentNumber: '' });
   const [photoBase64, setPhotoBase64] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -88,7 +88,7 @@ function Expenses() {
       });
       
       toast.success('Expense submitted for approval!');
-      setFormData({ amount: '', description: '' });
+      setFormData({ amount: '', description: '', paymentNumber: '' });
       setPhotoBase64(null);
       fetchExpenses(); // Refresh list
     } catch (error) {
@@ -100,7 +100,8 @@ function Expenses() {
 
   const getStatusBadge = (status) => {
     switch(status) {
-      case 'APPROVED': return <span className="flex items-center text-green-600 bg-green-50 px-2 py-1 rounded-full text-xs font-semibold"><CheckCircle className="w-3 h-3 mr-1"/> Approved</span>;
+      case 'APPROVED': return <span className="flex items-center text-blue-600 bg-blue-50 px-2 py-1 rounded-full text-xs font-semibold"><CheckCircle className="w-3 h-3 mr-1"/> Approved (Pending Payout)</span>;
+      case 'PAID': return <span className="flex items-center text-green-600 bg-green-50 px-2 py-1 rounded-full text-xs font-semibold"><CheckCircle className="w-3 h-3 mr-1"/> Paid</span>;
       case 'REJECTED': return <span className="flex items-center text-red-600 bg-red-50 px-2 py-1 rounded-full text-xs font-semibold"><XCircle className="w-3 h-3 mr-1"/> Rejected</span>;
       default: return <span className="flex items-center text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full text-xs font-semibold"><Clock className="w-3 h-3 mr-1"/> Pending</span>;
     }
@@ -139,6 +140,18 @@ function Expenses() {
               onChange={(e) => setFormData({...formData, description: e.target.value})}
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
               placeholder="What was this expense for?"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">GPay / PhonePe Number (for Reimbursement)</label>
+            <input
+              type="text"
+              required
+              value={formData.paymentNumber}
+              onChange={(e) => setFormData({...formData, paymentNumber: e.target.value})}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              placeholder="e.g. 9876543210"
             />
           </div>
 

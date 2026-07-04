@@ -6,6 +6,35 @@ exports.getDashboardStats = async (req, res, next) => {
     today.setHours(0, 0, 0, 0);
 
     const isCollector = req.user.role === 'COLLECTOR';
+    const isCashier = req.user.role === 'CASHIER';
+
+    if (isCashier) {
+      const [moneyIn, moneyOut] = await Promise.all([
+        prisma.cashTransfer.aggregate({
+          where: { cashierId: req.user.id, type: 'MONEY_IN' },
+          _sum: { amount: true }
+        }),
+        prisma.cashTransfer.aggregate({
+          where: { cashierId: req.user.id, type: 'MONEY_OUT' },
+          _sum: { amount: true }
+        })
+      ]);
+
+      const received = moneyIn._sum.amount || 0;
+      const spent = moneyOut._sum.amount || 0;
+      const remaining = received - spent;
+
+      return res.json({
+        success: true,
+        data: {
+          isCashier: true,
+          totalReceived: received,
+          totalSpent: spent,
+          remainingAmount: remaining
+        }
+      });
+    }
+
     const whereClause = isCollector ? { userId: req.user.id } : {};
     const todayWhere = isCollector ? { date: { gte: today }, userId: req.user.id } : { date: { gte: today } };
 

@@ -15,6 +15,9 @@ import ManageUsers from './pages/ManageUsers';
 import SecurityLogs from './pages/SecurityLogs';
 import Expenses from './pages/Expenses';
 import ManageExpenses from './pages/ManageExpenses';
+import CashierExpenses from './pages/CashierExpenses';
+import RecordTransfer from './pages/RecordTransfer';
+import TransferHistory from './pages/TransferHistory';
 
 // Layout
 import MainLayout from './components/layout/MainLayout';
@@ -46,6 +49,9 @@ function App() {
           <Route path="/donations/new" element={<ProtectedRoute><DonationForm /></ProtectedRoute>} />
           <Route path="/donations/history" element={<ProtectedRoute><ReceiptHistory /></ProtectedRoute>} />
           <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
+          <Route path="/transfers/new" element={<ProtectedRoute><RecordTransfer /></ProtectedRoute>} />
+          <Route path="/transfers" element={<ProtectedRoute><TransferHistory /></ProtectedRoute>} />
+          <Route path="/cashier/expenses" element={<ProtectedRoute><CashierExpenses /></ProtectedRoute>} />
           
           {/* Admin Only Routes */}
           <Route path="/reports" element={<AdminRoute><DetailedReports /></AdminRoute>} />
