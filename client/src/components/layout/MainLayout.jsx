@@ -38,36 +38,49 @@ const MainLayout = ({ children }) => {
       {/* Sidebar */}
       <div className={`
         fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700
-        transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static
+        transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static flex flex-col justify-between
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200 dark:border-slate-700">
-          <span className="text-lg font-bold text-slate-900 dark:text-white truncate">Abdul Kalam Youth Welfare Association</span>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 text-slate-500 hover:text-slate-700">
-            <X size={20} />
-          </button>
+        <div className="flex-1 overflow-y-auto">
+          <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200 dark:border-slate-700">
+            <span className="text-lg font-bold text-slate-900 dark:text-white truncate">Abdul Kalam Youth Welfare Association</span>
+            <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 text-slate-500 hover:text-slate-700">
+              <X size={20} />
+            </button>
+          </div>
+
+          <nav className="p-4 space-y-1">
+            {navigation.map((item) => {
+              const isActive = location.pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`
+                    flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors
+                    ${isActive
+                      ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-200'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700/50 dark:hover:text-white'}
+                  `}
+                >
+                  <item.icon className={`mr-3 h-5 w-5 ${isActive ? 'text-blue-600 dark:text-blue-300' : 'text-slate-400'}`} />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
-        <nav className="p-4 space-y-1">
-          {navigation.map((item) => {
-            const isActive = location.pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`
-                  flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors
-                  ${isActive
-                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-200'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700/50 dark:hover:text-white'}
-                `}
-              >
-                <item.icon className={`mr-3 h-5 w-5 ${isActive ? 'text-blue-600 dark:text-blue-300' : 'text-slate-400'}`} />
-                {item.name}
-              </Link>
-            );
-          })}
-        </nav>
+        <div className="p-4 border-t border-slate-200 dark:border-slate-700 text-center shrink-0">
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            Created by <span className="font-bold text-slate-900 dark:text-white">Manoj</span>
+          </p>
+          <p className="text-xs mt-1">
+            <a href="https://pmjprojects.vercel.app" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">
+              PMJ Projects
+            </a>
+          </p>
+        </div>
       </div>
 
       {/* Main Content */}
