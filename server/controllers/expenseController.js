@@ -18,6 +18,14 @@ exports.createExpense = async (req, res, next) => {
       }
     }
 
+    // Save persistent UPI ID if provided
+    if (paymentNumber) {
+      await prisma.user.update({
+        where: { id: req.user.id },
+        data: { upiId: paymentNumber }
+      });
+    }
+
     const expense = await prisma.expense.create({
       data: {
         userId: req.user.id,

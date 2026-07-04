@@ -20,6 +20,7 @@ model User {
   name      String   @default("Admin User")
   role      Role     @default(COLLECTOR)
   createdAt DateTime @default(now())
+  upiId     String?
   donations Donor[]
   loginLogs LoginLog[]
   expenses  Expense[]
