@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, Banknote, Search, CheckCircle, Smartphone } from 'lucide-react';
+import { Loader2, Banknote, Search, CheckCircle, Smartphone, Copy } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../services/api';
 
@@ -41,23 +41,9 @@ function CashierExpenses() {
     }
   };
 
-  const handleUPIPay = (expense) => {
-    if (!expense.paymentNumber) {
-      toast.error('No UPI number provided by the collector.');
-      return;
-    }
-    
-    // Add 'pn' parameter using the collector's name. Many UPI apps (like GPay/PhonePe)
-    // require the 'pn' (Payee Name) parameter to be present and will throw errors if omitted.
-    const payeeName = encodeURIComponent(expense.user.name || 'Collector');
-    const upiLink = `upi://pay?pa=${expense.paymentNumber}&pn=${payeeName}&am=${expense.amount}&cu=INR`;
-    window.location.href = upiLink;
-
-    setTimeout(() => {
-      if (window.confirm('Did the UPI payment succeed? Click OK to mark this expense as Paid.')) {
-        handlePay(expense.id, 'UPI');
-      }
-    }, 1500);
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Number copied to clipboard!');
   };
 
   // Only show APPROVED expenses (Pending Payouts)
@@ -103,9 +89,18 @@ function CashierExpenses() {
                       Paid from Advance (Deduct)
                     </div>
                   ) : expense.paymentNumber ? (
-                    <div className="flex items-center text-sm font-bold text-purple-700 bg-purple-50 p-2 rounded-lg mb-2">
-                      <Smartphone className="w-4 h-4 mr-2" />
-                      {expense.paymentNumber}
+                    <div className="flex items-center justify-between text-sm font-bold text-purple-700 bg-purple-50 p-2 rounded-lg mb-2">
+                      <div className="flex items-center">
+                        <Smartphone className="w-4 h-4 mr-2" />
+                        {expense.paymentNumber}
+                      </div>
+                      <button 
+                        onClick={() => copyToClipboard(expense.paymentNumber)}
+                        className="p-1 hover:bg-purple-200 rounded text-purple-600 transition-colors"
+                        title="Copy Number"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
                     </div>
                   ) : (
                     <p className="text-sm text-yellow-600 font-medium mb-2">No GPay number provided.</p>
@@ -124,11 +119,11 @@ function CashierExpenses() {
                           Paid Cash
                         </button>
                         <button
-                          onClick={() => handleUPIPay(expense)}
+                          onClick={() => handlePay(expense.id, 'UPI')}
                           disabled={processingId === expense.id || !expense.paymentNumber}
                           className="flex-1 bg-purple-100 text-purple-700 hover:bg-purple-200 py-2 rounded-lg font-bold transition-colors disabled:opacity-50 text-sm"
                         >
-                          Pay via UPI
+                          Mark Paid UPI
                         </button>
                       </div>
                     )}
