@@ -47,10 +47,10 @@ function CashierExpenses() {
       return;
     }
     
-    // We are completely omitting the 'pn' (Payee Name) parameter. 
-    // This forces the UPI app to fetch the real bank name from the NPCI server itself,
-    // avoiding any "name mismatch" errors caused by passing a hardcoded string.
-    const upiLink = `upi://pay?pa=${expense.paymentNumber}&am=${expense.amount}&cu=INR`;
+    // Add 'pn' parameter using the collector's name. Many UPI apps (like GPay/PhonePe)
+    // require the 'pn' (Payee Name) parameter to be present and will throw errors if omitted.
+    const payeeName = encodeURIComponent(expense.user.name || 'Collector');
+    const upiLink = `upi://pay?pa=${expense.paymentNumber}&pn=${payeeName}&am=${expense.amount}&cu=INR`;
     window.location.href = upiLink;
 
     setTimeout(() => {
