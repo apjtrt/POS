@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, MapPin, CheckCircle, XCircle, Search, Download } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import api from '../services/api';
@@ -45,31 +46,81 @@ function ManageExpenses() {
       return;
     }
 
-    const doc = new jsPDF();
-    
-    doc.setFontSize(18);
-    doc.text(`Expense Report - ${filter} Expenses`, 14, 22);
-    
-    const totalAmount = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-
-    const tableData = filteredExpenses.map(exp => [
-      new Date(exp.createdAt).toLocaleDateString(),
-      exp.description,
-      `Rs. ${exp.amount}`
-    ]);
-    
-    tableData.push([
-      { content: 'Total', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } },
-      { content: `Rs. ${totalAmount}`, styles: { fontStyle: 'bold' } }
-    ]);
-
-    autoTable(doc, {
-      startY: 30,
-      head: [['Date', 'Expense Description', 'Amount']],
-      body: tableData,
-      theme: 'grid',
-      headStyles: { fillColor: [59, 130, 246] }
+    const grouped = {};
+    filteredExpenses.forEach(exp => {
+      const dateKey = format(new Date(exp.createdAt), 'yyyy-MM-dd');
+      if (!grouped[dateKey]) grouped[dateKey] = [];
+      grouped[dateKey].push(exp);
     });
+
+    const sortedDates = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
+
+    const doc = new jsPDF('portrait');
+    
+    const centerText = (text, y, size, isBold = false) => {
+      doc.setFontSize(size);
+      if (isBold) doc.setFont("helvetica", "bold");
+      else doc.setFont("helvetica", "normal");
+      const textWidth = doc.getStringUnitWidth(text) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+      const textOffset = (doc.internal.pageSize.width - textWidth) / 2;
+      doc.text(text, textOffset, y);
+    };
+
+    centerText('Dr.A.P.J Abdul Kalam Youth Welfare Association', 15, 14, true);
+    centerText(`Expense Report - ${filter}`, 22, 12, true);
+
+    let currentY = 32;
+    let grandTotal = 0;
+    let receiptCounter = 1;
+
+    sortedDates.forEach(dateStr => {
+      if (currentY > 260) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      centerText(`Date: ${format(new Date(dateStr), 'dd/MM/yy')}`, currentY, 11, true);
+      currentY += 6;
+
+      let dateTotal = 0;
+      const tableRows = grouped[dateStr].map(exp => {
+        dateTotal += exp.amount;
+        return [
+          receiptCounter++,
+          exp.description,
+          exp.amount,
+          exp.user?.name || 'Unknown'
+        ];
+      });
+
+      tableRows.push([
+        { content: 'Total', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } },
+        { content: dateTotal, styles: { fontStyle: 'bold' } },
+        { content: '' }
+      ]);
+
+      autoTable(doc, {
+        startY: currentY,
+        head: [['Receipt No.', 'Description', 'Amount', 'Collector']],
+        body: tableRows,
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
+        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.1, fontStyle: 'normal' },
+        bodyStyles: { lineWidth: 0.1 },
+        didDrawPage: (data) => {
+          currentY = data.cursor.y;
+        }
+      });
+
+      currentY += 8;
+      
+      grandTotal += dateTotal;
+      centerText(`Total for Date ${format(new Date(dateStr), 'dd/MM/yy')}: Rs. ${dateTotal}`, currentY, 11, true);
+      currentY += 10;
+    });
+
+    if (currentY > 260) { doc.addPage(); currentY = 20; }
+    centerText(`GRAND TOTAL: Rs. ${grandTotal}`, currentY, 14, true);
 
     doc.save(`Expenses_Report_${filter}.pdf`);
   };

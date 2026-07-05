@@ -64,6 +64,32 @@ const DetailedReports = () => {
     }, {});
   };
 
+  const groupDonationsDetailed = (donations) => {
+    const grouped = {};
+    donations.forEach(d => {
+      const dateKey = format(new Date(d.date), 'yyyy-MM-dd');
+      const street = d.street || 'Unknown Street';
+      
+      if (!grouped[dateKey]) grouped[dateKey] = {};
+      if (!grouped[dateKey][street]) grouped[dateKey][street] = [];
+      
+      grouped[dateKey][street].push(d);
+    });
+    
+    const sortedDates = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
+    
+    const sortedGrouped = {};
+    sortedDates.forEach(date => {
+      const sortedStreets = Object.keys(grouped[date]).sort();
+      sortedGrouped[date] = {};
+      sortedStreets.forEach(street => {
+        sortedGrouped[date][street] = grouped[date][street].sort((a,b) => a.receiptNumber - b.receiptNumber);
+      });
+    });
+    
+    return sortedGrouped;
+  };
+
   const exportToCSV = async () => {
     setExporting(true);
     try {
@@ -127,77 +153,92 @@ const DetailedReports = () => {
       const allData = await fetchRawDonations();
       if (allData.length === 0) return toast.info('No data to export');
       
-      const grouped = groupDonationsByStreet(allData);
+      const grouped = groupDonationsDetailed(allData);
       
-      const doc = new jsPDF('portrait');
-      doc.setFontSize(16);
-      doc.text(settings?.associationName || 'Donation Receipts', 14, 20);
+      const doc = new jsPDF('landscape');
       
-      doc.setFontSize(11);
-      doc.text(filter === 'today' ? "Today's Detailed Report (Street Wise)" : "Detailed Collection Report (Street Wise)", 14, 28);
-      doc.text(`Generated on: ${format(new Date(), 'dd-MMM-yyyy HH:mm')}`, 14, 34);
+      const centerText = (text, y, size, isBold = false) => {
+        doc.setFontSize(size);
+        if (isBold) doc.setFont("helvetica", "bold");
+        else doc.setFont("helvetica", "normal");
+        const textWidth = doc.getStringUnitWidth(text) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+        const textOffset = (doc.internal.pageSize.width - textWidth) / 2;
+        doc.text(text, textOffset, y);
+      };
 
-      let currentY = 42;
+      centerText(settings?.associationName || 'Dr.A.P.J Abdul Kalam Youth Welfare Association', 15, 14, true);
+      centerText('Vinayagar Chadurthi', 22, 12, true);
+
+      let currentY = 32;
       let grandTotal = 0;
 
-      Object.entries(grouped).forEach(([street, donations]) => {
-        // Check if we need a new page for the heading
-        if (currentY > 260) {
+      Object.entries(grouped).forEach(([dateStr, streets]) => {
+        if (currentY > 180) {
           doc.addPage();
           currentY = 20;
         }
 
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.text(`Street: ${street}`, 14, currentY);
-        currentY += 4;
-
-        let streetTotal = 0;
-        const tableRows = donations.map(d => {
-          streetTotal += d.amount;
-          return [
-            d.receiptNumber,
-            format(new Date(d.date), 'dd-MMM'),
-            d.donorName,
-            d.mobile,
-            `Rs. ${d.amount}`,
-            d.collector
-          ];
-        });
-
-        autoTable(doc, {
-          startY: currentY,
-          head: [['Receipt No', 'Date', 'Donor Name', 'Mobile', 'Amount', 'Collector']],
-          body: tableRows,
-          theme: 'striped',
-          styles: { fontSize: 8 },
-          headStyles: { fillColor: [59, 130, 246] },
-          margin: { top: 10 },
-          didDrawPage: (data) => {
-            // Keep track of Y position for next elements
-            currentY = data.cursor.y;
-          }
-        });
-
-        grandTotal += streetTotal;
-        
+        centerText(`Date: ${format(new Date(dateStr), 'dd/MM/yy')}`, currentY, 11, true);
         currentY += 6;
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "bold");
-        doc.text(`Subtotal for ${street}: Rs. ${streetTotal}`, 14, currentY);
+        
+        let dateTotal = 0;
+
+        Object.entries(streets).forEach(([street, donations]) => {
+          if (currentY > 180) {
+            doc.addPage();
+            currentY = 20;
+          }
+
+          centerText(`Street: ${street}`, currentY, 10, true);
+          currentY += 4;
+          
+          let streetTotal = 0;
+
+          const tableRows = donations.map(d => {
+            streetTotal += d.amount;
+            return [
+              d.receiptNumber,
+              d.donorName,
+              d.amount,
+              d.collector,
+              d.paymentMode,
+              d.mobile || ''
+            ];
+          });
+          
+          dateTotal += streetTotal;
+
+          tableRows.push([
+            { content: 'Total', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } },
+            { content: streetTotal, styles: { fontStyle: 'bold' } },
+            { content: '', colSpan: 3 }
+          ]);
+
+          autoTable(doc, {
+            startY: currentY,
+            head: [['Receipt.no.', 'Name', 'Amount', 'collector', 'mode', 'phone number']],
+            body: tableRows,
+            theme: 'grid',
+            styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
+            headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.1, fontStyle: 'normal' },
+            bodyStyles: { lineWidth: 0.1 },
+            didDrawPage: (data) => {
+              currentY = data.cursor.y;
+            }
+          });
+
+          currentY += 8;
+        });
+        
+        grandTotal += dateTotal;
+        centerText(`Total for Date ${format(new Date(dateStr), 'dd/MM/yy')}: Rs. ${dateTotal}`, currentY, 11, true);
         currentY += 10;
       });
+      
+      if (currentY > 180) { doc.addPage(); currentY = 20; }
+      centerText(`GRAND TOTAL: Rs. ${grandTotal}`, currentY, 14, true);
 
-      // Grand Total at the end
-      if (currentY > 260) {
-        doc.addPage();
-        currentY = 20;
-      }
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text(`GRAND TOTAL: Rs. ${grandTotal}`, 14, currentY + 10);
-
-      doc.save(`Grouped_Report_${format(new Date(), 'yyyyMMdd_HHmm')}.pdf`);
+      doc.save(`Detailed_Report_${format(new Date(), 'yyyyMMdd_HHmm')}.pdf`);
       toast.success('PDF exported successfully');
     } catch (error) {
       toast.error('Export failed');
