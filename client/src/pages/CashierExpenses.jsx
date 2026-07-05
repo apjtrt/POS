@@ -109,31 +109,22 @@ function CashierExpenses() {
                   <p className="text-sm text-gray-500 mb-4 h-10 overflow-hidden text-ellipsis">{expense.description}</p>
                   
                   <div className="flex flex-col gap-2 pt-4 border-t border-gray-100">
-                    {!expense.claimFromAdvance && (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handlePay(expense.id, 'Cash')}
-                          disabled={processingId === expense.id}
-                          className="flex-1 bg-gray-100 text-gray-700 hover:bg-gray-200 py-2 rounded-lg font-bold transition-colors disabled:opacity-50 text-sm"
-                        >
-                          Paid Cash
-                        </button>
-                        <button
-                          onClick={() => handlePay(expense.id, 'UPI')}
-                          disabled={processingId === expense.id || !expense.paymentNumber}
-                          className="flex-1 bg-purple-100 text-purple-700 hover:bg-purple-200 py-2 rounded-lg font-bold transition-colors disabled:opacity-50 text-sm"
-                        >
-                          Mark Paid UPI
-                        </button>
-                      </div>
-                    )}
-                    <button
-                      onClick={() => handlePay(expense.id, 'Advance', true)}
-                      disabled={processingId === expense.id}
-                      className="w-full bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 py-2 rounded-lg font-bold transition-colors disabled:opacity-50 text-sm"
-                    >
-                      Deduct from Advance
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handlePay(expense.id, 'Cash')}
+                        disabled={processingId === expense.id}
+                        className="flex-1 bg-gray-100 text-gray-700 hover:bg-gray-200 py-2 rounded-lg font-bold transition-colors disabled:opacity-50 text-sm"
+                      >
+                        Paid Cash
+                      </button>
+                      <button
+                        onClick={() => handlePay(expense.id, 'UPI')}
+                        disabled={processingId === expense.id || !expense.paymentNumber}
+                        className="flex-1 bg-purple-100 text-purple-700 hover:bg-purple-200 py-2 rounded-lg font-bold transition-colors disabled:opacity-50 text-sm"
+                      >
+                        Mark Paid UPI
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
