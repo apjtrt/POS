@@ -301,16 +301,6 @@ const DonationForm = () => {
             {errors.mobile && <p className="mt-1 text-sm text-red-600">{errors.mobile.message}</p>}
           </div>
 
-          {/* Father/Husband Name */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Father/Husband Name *</label>
-            <input 
-              {...register('fatherName', { required: 'Father/Husband name is required' })}
-              className={`w-full px-3 py-2 border rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500 ${errors.fatherName ? 'border-red-500' : 'border-slate-300 dark:border-slate-600'}`} 
-            />
-            {errors.fatherName && <p className="mt-1 text-sm text-red-600">{errors.fatherName.message}</p>}
-          </div>
-
           {/* Donation Amount */}
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Donation Amount (₹) *</label>

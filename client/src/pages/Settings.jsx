@@ -64,9 +64,9 @@ const Settings = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Treasurer Name</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Secretary Name</label>
             <input 
-              {...register('treasurerName')}
+              {...register('secretaryName')}
               className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
             />
           </div>

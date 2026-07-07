@@ -80,7 +80,6 @@ const ReceiptVerification = () => {
                 <div>
                   <p className="text-sm text-slate-500 dark:text-slate-400">Donor Name</p>
                   <p className="font-semibold text-slate-900 dark:text-white">{receipt.donorName}</p>
-                  {receipt.fatherName && <p className="text-sm text-slate-600 dark:text-slate-400">S/o, D/o, W/o: {receipt.fatherName}</p>}
                 </div>
               </div>
 

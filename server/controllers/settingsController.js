@@ -8,7 +8,7 @@ exports.getSettings = async (req, res, next) => {
         data: {
           associationName: 'Dr. A.P.J. Abdul Kalam Association',
           presidentName: 'John Doe',
-          treasurerName: 'Jane Doe',
+          secretaryName: 'Jane Doe',
           githubRepo: 'your_github_username/donation-receipts',
           whatsappMessage: 'Vanakkam 🙏\n\nThank you for your valuable contribution to\nDr. A.P.J. Abdul Kalam Association.\n\nDonation Amount : ₹{amount}\nReceipt Number : {receiptNumber}\n\nDownload Receipt\n{pdfUrl}\n\nThank you.',
           whatsappMessageTa: 'வணக்கம் 🙏\n\nDr. A.P.J. அப்துல் கலாம் நற்பணி மன்றத்திற்கு உங்கள் நன்கொடைக்கு நன்றி.\n\nநன்கொடை தொகை : ₹{amount}\nரசீது எண் : {receiptNumber}\n\nரசீதை பதிவிறக்க\n{pdfUrl}\n\nநன்றி.',
@@ -28,7 +28,7 @@ exports.updateSettings = async (req, res, next) => {
     const { 
       associationName, 
       presidentName, 
-      treasurerName, 
+      secretaryName, 
       defaultPurpose, 
       financialYear, 
       githubRepo, 
@@ -43,7 +43,7 @@ exports.updateSettings = async (req, res, next) => {
       data: {
         associationName,
         presidentName,
-        treasurerName,
+        secretaryName,
         defaultPurpose,
         financialYear,
         githubRepo,
