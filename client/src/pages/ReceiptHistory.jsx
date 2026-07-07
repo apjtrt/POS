@@ -147,12 +147,20 @@ const ReceiptHistory = () => {
     }
   };
 
-  const handleWhatsApp = (donor) => {
+  const handleWhatsApp = (donor, language = 'en') => {
     if (!settings) return;
-    let message = settings.whatsappMessage
+    const streetLink = settings.streetLinks?.[donor.street] || '';
+
+    let template = language === 'ta' && settings.whatsappMessageTa 
+      ? settings.whatsappMessageTa 
+      : settings.whatsappMessage;
+
+    let message = template
+      .replace('{donorName}', donor.donorName)
       .replace('{amount}', donor.amount)
       .replace('{receiptNumber}', donor.receiptNumber)
-      .replace('{pdfUrl}', donor.pdfUrl || `http://localhost:5000/api/donations/${donor.receiptNumber}/pdf`);
+      .replace('{pdfUrl}', donor.pdfUrl || `http://localhost:5000/api/donations/${donor.receiptNumber}/pdf`)
+      .replace('{streetLink}', streetLink);
     
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/91${donor.mobile}?text=${encodedMessage}`;
@@ -287,8 +295,11 @@ const ReceiptHistory = () => {
                           <Image className="inline h-4 w-4" />
                         </button>
                       )}
-                      <button onClick={() => handleWhatsApp(donor)} className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300" title="Send WhatsApp">
-                        <Send className="inline h-4 w-4" />
+                      <button onClick={() => handleWhatsApp(donor, 'en')} className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300" title="WhatsApp (EN)">
+                        <span className="text-xs font-bold mr-1">EN</span><Send className="inline h-4 w-4" />
+                      </button>
+                      <button onClick={() => handleWhatsApp(donor, 'ta')} className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300" title="WhatsApp (TA)">
+                        <span className="text-xs font-bold mr-1">TA</span><Send className="inline h-4 w-4" />
                       </button>
                       {user?.role === 'ADMIN' && (
                         <button onClick={() => handleDelete(donor.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Delete">

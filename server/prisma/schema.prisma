@@ -100,7 +100,9 @@ model Settings {
   financialYear   String   @default("2026-2027")
   githubRepo      String
   whatsappMessage String
+  whatsappMessageTa String @default("")
   upiId           String   @default("default@upi")
+  streetLinks     Json?    @default("{}")
   updatedAt       DateTime @updatedAt
 }
 

@@ -97,13 +97,53 @@ const Settings = () => {
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">WhatsApp Message Template</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">WhatsApp Message Template (English)</label>
             <textarea 
               {...register('whatsappMessage')}
               rows="6"
               className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500 font-mono text-sm" 
             ></textarea>
-            <p className="mt-1 text-xs text-slate-500">Variables available: {'{amount}'}, {'{receiptNumber}'}, {'{pdfUrl}'}</p>
+            <p className="mt-1 text-xs text-slate-500">Variables available: {'{donorName}'}, {'{amount}'}, {'{receiptNumber}'}, {'{pdfUrl}'}, {'{streetLink}'}</p>
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">WhatsApp Message Template (Tamil)</label>
+            <textarea 
+              {...register('whatsappMessageTa')}
+              rows="6"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500 font-mono text-sm" 
+            ></textarea>
+            <p className="mt-1 text-xs text-slate-500">Variables available: {'{amount}'}, {'{receiptNumber}'}, {'{pdfUrl}'}, {'{streetLink}'}</p>
+          </div>
+
+          <div className="md:col-span-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+            <h3 className="text-lg font-medium text-slate-800 dark:text-slate-200 mb-4">Street WhatsApp Group Links</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Kambar Street</label>
+                <input 
+                  {...register('streetLinks.Kambar Street')}
+                  placeholder="https://chat.whatsapp.com/..."
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Kumaran Street</label>
+                <input 
+                  {...register('streetLinks.Kumaran Street')}
+                  placeholder="https://chat.whatsapp.com/..."
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Maruthi Street</label>
+                <input 
+                  {...register('streetLinks.Maruthi Street')}
+                  placeholder="https://chat.whatsapp.com/..."
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
+                />
+              </div>
+            </div>
           </div>
         </div>
 
