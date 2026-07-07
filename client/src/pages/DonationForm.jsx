@@ -182,13 +182,20 @@ const DonationForm = () => {
     }
   };
 
-  const handleWhatsApp = () => {
+  const handleWhatsApp = (language = 'en') => {
     if (!createdReceipt || !settings) return;
+    const streetLink = settings.streetLinks?.[createdReceipt.street] || '';
     
-    let message = settings.whatsappMessage
+    let template = language === 'ta' && settings.whatsappMessageTa 
+      ? settings.whatsappMessageTa 
+      : settings.whatsappMessage;
+
+    let message = template
+      .replace('{donorName}', createdReceipt.donorName)
       .replace('{amount}', createdReceipt.amount)
       .replace('{receiptNumber}', createdReceipt.receiptNumber)
-      .replace('{pdfUrl}', createdReceipt.pdfUrl || `http://localhost:5000/api/donations/${createdReceipt.receiptNumber}/pdf`);
+      .replace('{pdfUrl}', createdReceipt.pdfUrl || `http://localhost:5000/api/donations/${createdReceipt.receiptNumber}/pdf`)
+      .replace('{streetLink}', streetLink);
     
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/91${createdReceipt.mobile}?text=${encodedMessage}`;
@@ -215,10 +222,17 @@ const DonationForm = () => {
           </a>
           
           <button 
-            onClick={handleWhatsApp}
+            onClick={() => handleWhatsApp('en')}
             className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
           >
-            <Send className="mr-2 h-4 w-4" /> Send WhatsApp
+            <Send className="mr-2 h-4 w-4" /> WhatsApp (EN)
+          </button>
+          
+          <button 
+            onClick={() => handleWhatsApp('ta')}
+            className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+          >
+            <Send className="mr-2 h-4 w-4" /> WhatsApp (TA)
           </button>
           
           <button 
