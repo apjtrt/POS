@@ -5,7 +5,7 @@ const { uploadToGithub, uploadImageToGithub } = require('../services/githubServi
 
 exports.createDonation = async (req, res, next) => {
   try {
-    const { donorName, fatherName, mobile, street, doorNumber, amount, paymentMode, purpose, remarks, bypassDuplicateCheck, latitude, longitude, upiScreenshot } = req.body;
+    const { donorName, mobile, street, doorNumber, amount, paymentMode, purpose, remarks, bypassDuplicateCheck, latitude, longitude, upiScreenshot } = req.body;
 
     // Duplicate Check
     if (!bypassDuplicateCheck) {
@@ -51,7 +51,6 @@ exports.createDonation = async (req, res, next) => {
       data: {
         receiptNumber,
         donorName,
-        fatherName,
         mobile,
         street,
         doorNumber,
@@ -69,7 +68,8 @@ exports.createDonation = async (req, res, next) => {
 
     // Generate PDF
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const pdfBytes = await generatePdfReceipt(donor, receiptNumber, frontendUrl);
+    const settings = await prisma.settings.findFirst();
+    const pdfBytes = await generatePdfReceipt(donor, receiptNumber, frontendUrl, settings);
     
     // Upload to GitHub
     const timestamp = Date.now();
@@ -185,7 +185,8 @@ exports.getDonationPdf = async (req, res, next) => {
     }
     
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const pdfBytes = await generatePdfReceipt(donor, receiptNumber, frontendUrl);
+    const settings = await prisma.settings.findFirst();
+    const pdfBytes = await generatePdfReceipt(donor, receiptNumber, frontendUrl, settings);
     
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="Receipt-${receiptNumber}.pdf"`);

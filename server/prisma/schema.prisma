@@ -71,7 +71,6 @@ model Donor {
   id            Int      @id @default(autoincrement())
   receiptNumber String   @unique
   donorName     String
-  fatherName    String?
   mobile        String
   street        String
   doorNumber    String?
@@ -95,7 +94,7 @@ model Settings {
   id              Int      @id @default(autoincrement())
   associationName String   @default("Dr. A.P.J. Abdul Kalam Association")
   presidentName   String
-  treasurerName   String
+  secretaryName   String   @default("Jane Doe")
   defaultPurpose  String   @default("Vinayagar Chadurthi 2026")
   financialYear   String   @default("2026-2027")
   githubRepo      String
