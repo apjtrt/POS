@@ -4,6 +4,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const prisma = require('./config/db');
+const cron = require('node-cron');
+const { performDatabaseBackup } = require('./services/backupService');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -62,6 +64,13 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('CRITICAL: Unhandled Rejection at:', promise, 'reason:', reason);
 });
 // ------------------------------------
+
+// Schedule Automated Database Backups
+// Runs every 3 hours
+cron.schedule('0 */3 * * *', () => {
+  console.log('Running scheduled database backup...');
+  performDatabaseBackup();
+});
 
 // Start Server
 const server = app.listen(PORT, () => {
