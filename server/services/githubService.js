@@ -68,5 +68,40 @@ const uploadImageToGithub = async (base64Data, filename, folder = 'images') => {
     return null; // Return null so the app doesn't crash on image upload failure
   }
 };
+};
 
-module.exports = { uploadToGithub, uploadImageToGithub };
+const uploadBackupToGithub = async (jsonString, filename) => {
+  const token = process.env.GITHUB_TOKEN;
+  const repo = process.env.GITHUB_REPO;
+  
+  if (!token || !repo || token.includes('your_github_token_here')) {
+    console.log('GitHub integration not configured. Skipping backup upload.');
+    return null;
+  }
+
+  const base64Content = Buffer.from(jsonString).toString('base64');
+  const path = `database_backups/${filename}`;
+  const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+
+  try {
+    const response = await axios.put(
+      url,
+      {
+        message: `Automated DB Backup ${filename}`,
+        content: base64Content,
+      },
+      {
+        headers: {
+          Authorization: `token ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data.content.download_url;
+  } catch (error) {
+    console.error('Error uploading backup to GitHub:', error.response?.data || error.message);
+    return null;
+  }
+};
+
+module.exports = { uploadToGithub, uploadImageToGithub, uploadBackupToGithub };
