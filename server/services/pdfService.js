@@ -146,7 +146,8 @@ const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) =
   y = stripTop - 22 - 22;
 
   // ---------- QR code (top-right, out of the way of the field list) ----------
-  const cleanFrontendUrl = frontendUrl.replace(/\/+$/, '');
+  // Aggressively clean frontendUrl (remove spaces, quotes, and trailing slashes)
+  const cleanFrontendUrl = frontendUrl.replace(/["'\s]/g, '').replace(/\/+$/, '');
   const qrUrl = `${cleanFrontendUrl}/receipt/${receiptNumber}`;
   const qrDataUrl = await QRCode.toDataURL(qrUrl, { margin: 1, color: { dark: '#0d2673' } });
   const qrImageBytes = Buffer.from(qrDataUrl.split(',')[1], 'base64');
