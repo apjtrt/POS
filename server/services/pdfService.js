@@ -138,7 +138,8 @@ const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) =
   });
 
   // QR Code
-  const qrUrl = `${frontendUrl}/receipt/${receiptNumber}`;
+  const cleanFrontendUrl = frontendUrl.replace(/\/+$/, '');
+  const qrUrl = `${cleanFrontendUrl}/receipt/${receiptNumber}`;
   const qrDataUrl = await QRCode.toDataURL(qrUrl);
   const qrImageBytes = Buffer.from(qrDataUrl.split(',')[1], 'base64');
   const qrImage = await pdfDoc.embedPng(qrImageBytes);
