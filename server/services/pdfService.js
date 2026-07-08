@@ -1,302 +1,536 @@
 require('regenerator-runtime/runtime');
-const { PDFDocument, rgb, StandardFonts, PDFString } = require('pdf-lib');
+const { PDFDocument, rgb, StandardFonts, PDFString, drawText } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 const fs = require('fs');
 const path = require('path');
+const QRCode = require('qrcode');
 
-// ---- Design tokens (single source of truth so the look stays consistent) ----
+// =============================================================================
+//  DESIGN TOKENS
+// =============================================================================
 const COLORS = {
-  primary: rgb(0.05, 0.15, 0.45),   // deep navy - org name / headings
-  accent: rgb(0.72, 0.11, 0.11),    // maroon-red - amount / emphasis
-  text: rgb(0.12, 0.12, 0.12),      // near-black body text
-  muted: rgb(0.45, 0.45, 0.45),     // secondary/meta text
-  link: rgb(0.05, 0.15, 0.45),      // links match primary (not a random blue)
-  line: rgb(0.82, 0.82, 0.82),      // hairlines/dividers
-  success: rgb(0.1, 0.45, 0.2),     // thank-you line
+    primary: rgb(0.00, 0.20, 0.40),   // #003366 deep navy
+    green: rgb(0.04, 0.54, 0.26),   // #0B8A42 verified green
+    lightGray: rgb(0.96, 0.96, 0.96),   // #F5F5F5 card background
+    darkGray: rgb(0.33, 0.33, 0.33),   // #555555 secondary text
+    black: rgb(0.13, 0.13, 0.13),   // #222222 body text
+    white: rgb(1.00, 1.00, 1.00),   // #FFFFFF
+    divider: rgb(0.80, 0.84, 0.90),   // light blue-gray rule
+    cardBorder: rgb(0.85, 0.88, 0.93),   // card outline
+    link: rgb(0.00, 0.20, 0.40),   // hyperlinks
 };
 
+// =============================================================================
+//  PAGE & LAYOUT CONSTANTS
+// =============================================================================
 const PAGE_W = 420;
 const PAGE_H = 595;
-const MARGIN = 28;
+const MARGIN = 26;
 
+const SP = { xs: 4, sm: 8, md: 14, lg: 20, xl: 28 };
+
+const FS = {
+    hero: 13,
+    title: 10,
+    label: 8,
+    value: 9,
+    small: 7.5,
+    badge: 7,
+    receipt: 16,
+};
+
+const CARD = { padX: 10, padY: 8, borderW: 0.6 };
+
+const QR = { size: 78, pad: 6, boxW: 90, boxH: 112 };
+
+// =============================================================================
+//  MAIN EXPORT
+// =============================================================================
 const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) => {
-  const pdfDoc = await PDFDocument.create();
-  pdfDoc.registerFontkit(fontkit);
-  const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
 
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const pdfDoc = await PDFDocument.create();
+    pdfDoc.registerFontkit(fontkit);
+    const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
 
-  let tamilFont;
-  try {
-    const tamilFontBytes = fs.readFileSync(path.join(__dirname, '../fonts/tamil.ttf'));
-    tamilFont = await pdfDoc.embedFont(tamilFontBytes);
-  } catch (err) {
-    console.error('Error loading Tamil font:', err);
-    tamilFont = bold; // fallback to bold (though it will error out on Tamil characters, it's better than crashing here)
-  }
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-  // ---------- helpers ----------
-  const centerText = (text, y, size, f, color = COLORS.text) => {
-    const w = f.widthOfTextAtSize(text, size);
-    page.drawText(text, { x: (PAGE_W - w) / 2, y, size, font: f, color });
-  };
-
-  const centerLink = (text, url, y, size, f, color = COLORS.link) => {
-    const w = f.widthOfTextAtSize(text, size);
-    const x = (PAGE_W - w) / 2;
-    page.drawText(text, { x, y, size, font: f, color });
-    const link = pdfDoc.context.obj({
-      Type: 'Annot',
-      Subtype: 'Link',
-      Rect: [x, y - 2, x + w, y + size],
-      Border: [0, 0, 0],
-      A: { Type: 'Action', S: 'URI', URI: PDFString.of(url) },
-    });
-    page.node.addAnnot(pdfDoc.context.register(link));
-  };
-
-  const hLine = (y, x1 = MARGIN, x2 = PAGE_W - MARGIN, color = COLORS.line, thickness = 0.75) => {
-    page.drawLine({ start: { x: x1, y }, end: { x: x2, y }, thickness, color });
-  };
-
-  // ---------- outer border ----------
-  page.drawRectangle({
-    x: 12, y: 12, width: PAGE_W - 24, height: PAGE_H - 24,
-    borderColor: COLORS.primary, borderWidth: 1.5,
-  });
-  // thin inner accent line for a "certificate" feel
-  page.drawRectangle({
-    x: 16, y: 16, width: PAGE_W - 32, height: PAGE_H - 32,
-    borderColor: COLORS.line, borderWidth: 0.5,
-  });
-
-  // ---------- faint watermark portrait (kept quiet, doesn't fight the text) ----------
-  try {
-    const bgPath = path.join(__dirname, '../../client/public/images/logo1.jpeg');
-    if (fs.existsSync(bgPath)) {
-      const bgBytes = fs.readFileSync(bgPath);
-      const bgImage = await pdfDoc.embedJpg(bgBytes);
-      const dims = bgImage.scale(1);
-      const targetW = 220;
-      const targetH = targetW / (dims.width / dims.height);
-      page.drawImage(bgImage, {
-        x: (PAGE_W - targetW) / 2,
-        y: (PAGE_H - targetH) / 2 - 10,
-        width: targetW,
-        height: targetH,
-        opacity: 0.15,
-      });
-    }
-  } catch (err) {
-    console.error('Error embedding background:', err);
-  }
-
-  // ---------- header ----------
-  let y = PAGE_H - 40;
-
-  // header title block spans 4 lines (12.5 + 14gap + 12.5 + 11gap + 7.5 + 9gap + 7.5 = ~51.5pt tall)
-  const headerBlockTop = y + 9;      // approx ascender above first baseline
-  const headerBlockBottom = y - 40 - 2; // approx descender below last baseline
-  const headerBlockCenter = (headerBlockTop + headerBlockBottom) / 2;
-  const logoSize = 46;
-
-  try {
-    const logoPath = path.join(__dirname, '../../client/public/images/logo.png');
-    if (fs.existsSync(logoPath)) {
-      const logoBytes = fs.readFileSync(logoPath);
-      const logoImage = await pdfDoc.embedPng(logoBytes);
-      // vertically centered against the title block, not an eyeballed offset
-      page.drawImage(logoImage, {
-        x: MARGIN, y: headerBlockCenter - logoSize / 2, width: logoSize, height: logoSize,
-      });
-    }
-  } catch (err) {
-    console.error('Error embedding logo:', err);
-  }
-
-  centerText('DR.A.P.J. ABDUL KALAM YOUTH WELFARE', y, 12.5, bold, COLORS.primary);
-  y -= 15;
-  centerText('ASSOCIATION - TIRUTTANI', y, 12.5, bold, COLORS.primary);
-  y -= 14;
-  centerText('(Affiliated to Nehru Yuva Kendra Sangathan (NYKS))', y, 7.5, font, COLORS.muted);
-  y -= 11;
-  centerText('REG. NO: 313/2024', y, 7.5, font, COLORS.muted);
-  y -= 16;
-
-  // ---------- Custom Header Images ----------
-  // We will load images for the Tamil text to ensure perfect rendering.
-  const colY = y;
-
-  const drawTamilImg = async (filename, align, yOffset, targetHeight) => {
+    let tamilFont;
     try {
-      const pngPath = path.join(__dirname, `../../client/public/images/${filename}.png`);
-      const jpgPath = path.join(__dirname, `../../client/public/images/${filename}.jpg`);
-      const imgPath = fs.existsSync(pngPath) ? pngPath : (fs.existsSync(jpgPath) ? jpgPath : null);
-
-      if (imgPath) {
-        const imgBytes = fs.readFileSync(imgPath);
-        const img = imgPath.endsWith('.png') ? await pdfDoc.embedPng(imgBytes) : await pdfDoc.embedJpg(imgBytes);
-        const dims = img.scale(1);
-        const targetW = targetHeight * (dims.width / dims.height);
-
-        let xPos = MARGIN;
-        if (align === 'center') xPos = (PAGE_W - targetW) / 2;
-        if (align === 'right') xPos = PAGE_W - MARGIN - targetW;
-
-        page.drawImage(img, { x: xPos, y: yOffset - targetHeight, width: targetW, height: targetHeight });
-      }
-    } catch (e) {
-      console.error(`Error loading ${filename}:`, e);
+        const tamilFontBytes = Uint8Array.from(fs.readFileSync(path.join(__dirname, '../fonts/tamil.ttf')));
+        tamilFont = await pdfDoc.embedFont(tamilFontBytes);
+    } catch (err) {
+        console.error('Error loading Tamil font:', err);
+        tamilFont = bold;
     }
-  };
 
-  // Adjust target heights based on the image proportions (2 lines vs 1 line)
-  await drawTamilImg('tamil-left', 'left', colY + 10, 22);
-  await drawTamilImg('tamil-center', 'center', colY + 2, 10);
-  await drawTamilImg('tamil-right', 'right', colY + 10, 22);
+    // Address enrichment (keep original business logic)
+    let streetDisplay = donor.street || '';
+    const lowerStreet = streetDisplay.toLowerCase().trim();
+    if (
+        lowerStreet === 'kambar street' ||
+        lowerStreet === 'kumaran street' ||
+        lowerStreet === 'maruthi street' ||
+        lowerStreet === 'maruthi strret'
+    ) {
+        streetDisplay = `${streetDisplay}, Subramaniya Nagar, Tiruttani - 631209`;
+    }
+    const addressDisplay = donor.doorNumber
+        ? `${donor.doorNumber}, ${streetDisplay}`
+        : streetDisplay;
 
-  y -= 24;
+    // Date / time string
+    const dateObj = new Date(donor.createdAt);
+    const dateStr = dateObj.toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata', hour12: true,
+        day: '2-digit', month: 'short', year: 'numeric',
+    });
+    const timeStr = dateObj.toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata', hour12: true,
+        hour: '2-digit', minute: '2-digit',
+    });
 
-  hLine(y, MARGIN, PAGE_W - MARGIN, COLORS.primary, 1);
-  y -= 22;
+    const presidentName = settings?.presidentName || 'President Name';
+    const secretaryName = settings?.secretaryName || 'Secretary Name';
 
-  centerText('DONATION RECEIPT', y, 15, bold, COLORS.text);
-  y -= 26;
+    // =========================================================================
+    //  HELPER FUNCTIONS
+    // =========================================================================
 
-  // ---------- receipt no. + date strip (the two things people scan for first) ----------
-  const stripTop = y;
-  page.drawRectangle({
-    x: MARGIN, y: stripTop - 22, width: PAGE_W - 2 * MARGIN, height: 24,
-    color: rgb(0.96, 0.96, 0.98),
-  });
-  page.drawText('RECEIPT NO.  ', { x: MARGIN + 10, y: stripTop - 15, size: 7.5, font: bold, color: COLORS.muted });
-  const receiptNoLabelW = bold.widthOfTextAtSize('RECEIPT NO.  ', 7.5);
-  page.drawText(String(receiptNumber), {
-    x: MARGIN + 10 + receiptNoLabelW, y: stripTop - 15, size: 10, font: bold, color: COLORS.primary,
-  });
+    const drawCenteredText = (text, y, size, f, color = COLORS.black) => {
+        const w = f.widthOfTextAtSize(text, size);
+        page.drawText(text, { x: (PAGE_W - w) / 2, y, size, font: f, color });
+        return w;
+    };
 
-  const dateStr = new Date(donor.createdAt).toLocaleString('en-IN', {
-    timeZone: 'Asia/Kolkata', hour12: true, day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
-  const dateLabel = 'DATE  ';
-  const dateLabelW = bold.widthOfTextAtSize(dateLabel, 7.5);
-  const dateValueW = font.widthOfTextAtSize(dateStr, 9.5);
-  const dateBlockW = dateLabelW + dateValueW;
-  const dateX = PAGE_W - MARGIN - 10 - dateBlockW;
-  page.drawText(dateLabel, { x: dateX, y: stripTop - 15, size: 7.5, font: bold, color: COLORS.muted });
-  page.drawText(dateStr, { x: dateX + dateLabelW, y: stripTop - 15, size: 9.5, font, color: COLORS.text });
+    const drawDivider = (y, x1 = MARGIN, x2 = PAGE_W - MARGIN,
+        color = COLORS.divider, thickness = 0.8) => {
+        page.drawLine({ start: { x: x1, y }, end: { x: x2, y }, thickness, color });
+    };
 
-  y = stripTop - 22 - 22;
+    const drawBlueDivider = (y, x1 = MARGIN, x2 = PAGE_W - MARGIN) => {
+        page.drawLine({
+            start: { x: x1, y }, end: { x: x2, y },
+            thickness: 1.5, color: COLORS.primary,
+        });
+    };
 
-  // ---------- field list ----------
-  const leftCol = MARGIN + 4;
-  const valueCol = MARGIN + 118;
-  const fieldMaxWidth = PAGE_W - MARGIN - valueCol; // use full width since QR code is removed
-  const lineSpacing = 20;
+    const drawCard = (x, y, w, h, fillColor = COLORS.lightGray,
+        borderColor = COLORS.cardBorder) => {
+        page.drawRectangle({
+            x, y, width: w, height: h,
+            color: fillColor,
+            borderColor,
+            borderWidth: CARD.borderW,
+        });
+    };
 
-  let streetDisplay = donor.street || '';
-  const lowerStreet = streetDisplay.toLowerCase().trim();
-  if (
-    lowerStreet === 'kambar street' ||
-    lowerStreet === 'kumaran street' ||
-    lowerStreet === 'maruthi street' ||
-    lowerStreet === 'maruthi strret' // handling common typo based on prompt
-  ) {
-    streetDisplay = `${streetDisplay}, Subramaniya Nagar, Tiruttani - 631209`;
-  }
+    const drawCenteredLink = (text, url, y, size = FS.value, f = font,
+        color = COLORS.link) => {
+        const w = f.widthOfTextAtSize(text, size);
+        const x = (PAGE_W - w) / 2;
+        page.drawText(text, { x, y, size, font: f, color });
+        const link = pdfDoc.context.obj({
+            Type: 'Annot', Subtype: 'Link',
+            Rect: [x, y - 2, x + w, y + size],
+            Border: [0, 0, 0],
+            A: { Type: 'Action', S: 'URI', URI: PDFString.of(url) },
+        });
+        page.node.addAnnot(pdfDoc.context.register(link));
+    };
 
-  const addressDisplay = donor.doorNumber ? `${donor.doorNumber}, ${streetDisplay}` : streetDisplay;
+    const drawWatermark = async () => {
+        try {
+            const bgPath = path.join(__dirname, '../../client/public/images/logo1.jpeg');
+            if (fs.existsSync(bgPath)) {
+                const bgBytes = Uint8Array.from(fs.readFileSync(bgPath));
+                let bgImage;
+                try {
+                    bgImage = await pdfDoc.embedJpg(bgBytes);
+                } catch (e) {
+                    bgImage = await pdfDoc.embedPng(bgBytes);
+                }
+                const dims = bgImage.scale(1);
+                const targetW = 200;
+                const targetH = targetW / (dims.width / dims.height);
+                page.drawImage(bgImage, {
+                    x: (PAGE_W - targetW) / 2,
+                    y: (PAGE_H - targetH) / 2 - 20,
+                    width: targetW, height: targetH,
+                    opacity: 0.07,
+                });
+            }
+        } catch (err) {
+            console.error('Error embedding watermark:', err);
+        }
+    };
+    const drawWatermark2 = async () => {
+        try {
+            const bgPath = path.join(__dirname, '../../client/public/images/bg.jpg');
+            if (fs.existsSync(bgPath)) {
+                const bgBytes = Uint8Array.from(fs.readFileSync(bgPath));
+                let bgImage;
+                try {
+                    bgImage = await pdfDoc.embedJpg(bgBytes);
+                } catch (e) {
+                    bgImage = await pdfDoc.embedPng(bgBytes);
+                }
 
-  const fields = [
-    { label: 'Donor Name', value: donor.donorName },
-    { label: 'Mobile', value: donor.mobile },
-    { label: 'Address', value: addressDisplay },
-    { label: 'Payment Mode', value: donor.paymentMode },
-    { label: 'Purpose', value: donor.purpose },
-  ];
+                // Header space dimensions based on layout constants
+                const headerTop = 581; // Inner border top
+                const headerBottom = 485; // Blue divider position
 
-  fields.forEach((field) => {
-    page.drawText(field.label, { x: leftCol, y, size: 9, font: bold, color: COLORS.muted });
-    page.drawText(String(field.value), { x: valueCol, y, size: 9.5, font, color: COLORS.text });
-    y -= lineSpacing;
-  });
+                page.drawImage(bgImage, {
+                    x: 15,
+                    y: headerBottom + 1, // Just above the divider
+                    width: PAGE_W - 30, // Span inside borders
+                    height: headerTop - headerBottom - 1,
+                    opacity: 0.15,
+                });
+            }
+        } catch (err) {
+            console.error('Error embedding watermark:', err);
+        }
+    };
 
-  y -= 4;
-  // ---------- collector ----------
-  page.drawText('Collector', { x: leftCol, y, size: 9, font: bold, color: COLORS.muted });
-  page.drawText(String(donor.collector), { x: valueCol, y, size: 9.5, font, color: COLORS.text });
-  y -= 30;
 
-  hLine(y, MARGIN, PAGE_W - MARGIN);
-  y -= 24;
+    const drawLogo = async (centerY) => {
+        try {
+            const logoPath = path.join(__dirname, '../../client/public/images/logo1.png');
+            if (fs.existsSync(logoPath)) {
+                const logoBytes = Uint8Array.from(fs.readFileSync(logoPath));
+                const logoImage = await pdfDoc.embedPng(logoBytes);
+                const logoSize = 46;
+                page.drawImage(logoImage, {
+                    x: 50, y: 520,
+                    width: logoSize, height: logoSize,
+                });
+            }
+        } catch (err) {
+            console.error('Error embedding logo:', err);
+        }
+    };
+    const drawLogo2 = async (centerY) => {
+        try {
+            const logoPath = path.join(__dirname, '../../client/public/images/logo.png');
+            if (fs.existsSync(logoPath)) {
+                const logoBytes = Uint8Array.from(fs.readFileSync(logoPath));
+                const logoImage = await pdfDoc.embedPng(logoBytes);
+                const logoSize = 46;
+                page.drawImage(logoImage, {
+                    x: 325, y: 520,
+                    width: logoSize, height: logoSize,
+                });
+            }
+        } catch (err) {
+            console.error('Error embedding logo:', err);
+        }
+    };
+    const drawTamilImg = async (filename, align, yOffset, targetHeight) => {
+        try {
+            const pngPath = path.join(__dirname, `../../client/public/images/${filename}.png`);
+            const jpgPath = path.join(__dirname, `../../client/public/images/${filename}.jpg`);
+            const imgPath = fs.existsSync(pngPath) ? pngPath
+                : fs.existsSync(jpgPath) ? jpgPath : null;
+            if (!imgPath) return;
+            const imgBytes = Uint8Array.from(fs.readFileSync(imgPath));
+            const img = imgPath.endsWith('.png')
+                ? await pdfDoc.embedPng(imgBytes)
+                : await pdfDoc.embedJpg(imgBytes);
+            const dims = img.scale(1);
+            const targetW = targetHeight * (dims.width / dims.height);
+            let xPos = MARGIN;
+            if (align === 'center') xPos = (PAGE_W - targetW) / 2;
+            if (align === 'right') xPos = PAGE_W - MARGIN - targetW;
+            page.drawImage(img, { x: xPos, y: yOffset - targetHeight, width: targetW, height: targetHeight });
+        } catch (e) {
+            console.error(`Error loading ${filename}:`, e);
+        }
+    };
 
-  // ---------- donation amount, emphasized ----------
-  page.drawText('DONATION AMOUNT', { x: leftCol, y, size: 15, font: bold, color: COLORS.text });
-  const amountText = `Rs. ${donor.amount}`;
-  const amountSize = 15;
-  const amountW = bold.widthOfTextAtSize(amountText, amountSize);
-  page.drawText(amountText, {
-    x: PAGE_W - MARGIN - amountW, y: y - 0, size: amountSize, font: bold, color: COLORS.accent,
-  });
-  y -= 20;
+    const drawSignature = (name, role, x, y, align = 'left') => {
+        const nameW = bold.widthOfTextAtSize(name, FS.value);
+        const roleW = font.widthOfTextAtSize(role, FS.small);
+        const lineW = Math.max(90, nameW + 16);
+        const lineX = align === 'right' ? x - lineW : x;
+        const nameX = align === 'right' ? x - nameW : x;
+        const roleX = align === 'right' ? x - roleW : x;
+        page.drawLine({
+            start: { x: lineX, y: y + SP.lg },
+            end: { x: lineX + lineW, y: y + SP.lg },
+            thickness: 0.8, color: COLORS.primary,
+        });
+        page.drawText(name, { x: nameX, y: y + SP.sm, size: FS.value, font: bold, color: COLORS.black });
+        page.drawText(role, { x: roleX, y, size: FS.small, font, color: COLORS.darkGray });
+    };
 
-  hLine(y, MARGIN, PAGE_W - MARGIN);
-  y -= 34;
-  // ---------- association links ----------
+    const drawHeader = async () => {
+        let y = PAGE_H - MARGIN - 10;
+        const headerCenterY = y - 22;
+        await drawLogo(headerCenterY);
+        await drawLogo2(headerCenterY);
+        drawCenteredText('DR. A.P.J. ABDUL KALAM', y, FS.hero, bold, COLORS.primary);
+        y -= SP.md + 2;
+        drawCenteredText('YOUTH WELFARE ASSOCIATION', y, FS.hero, bold, COLORS.primary);
+        y -= SP.md;
+        drawCenteredText('Affiliated to Nehru Yuva Kendra Sangathan (NYKS)', y, FS.small, font, COLORS.darkGray);
+        y -= SP.sm + 2;
+        drawCenteredText('Registration No. 313/2024', y, FS.small, font, COLORS.darkGray);
+        y -= SP.md;
 
-  centerLink('Website: abdulkalamassociation.vercel.app', 'https://abdulkalamassociation.vercel.app', y, 8.5, font);
-  y -= 13;
-  centerLink('Instagram: @apjtrusttiruttani2024', 'https://www.instagram.com/apjtrusttiruttani2024?igsh=azZpdmp0b3Q1cHR1', y, 8.5, font);
-  y -= 13;
-  centerLink('Location: View on Google Maps', 'https://share.google/cQ4sLoKGJ58JCg5b2', y, 8.5, font);
-  y -= 18;
-  centerText('CONTACT NUMBERS:+91 86087 70533 +91 99941 87100', y, 8.5, bold, COLORS.text);
-  y -= 12;
+        const tamilRowY = y;
+        await drawTamilImg('tamil-left', 'left', tamilRowY + 10, 22);
+        await drawTamilImg('tamil-center', 'center', tamilRowY + 2, 10);
+        await drawTamilImg('tamil-right', 'right', tamilRowY + 10, 22);
+        y -= SP.lg;
 
-  hLine(y, MARGIN, PAGE_W - MARGIN);
-  y -= 40; // reduced from 40 to give more room at the bottom
+        drawBlueDivider(y);
+        y -= SP.md;
 
-  // ---------- signature blocks ----------
-  // Each underline is sized to its own name (min width so short names still look intentional),
-  // and both blocks sit symmetrically around the page's vertical center line.
-  const sigY = y;
-  const sigPadding = 14; // breathing room on each side of the name, above the line
-  const sigMinWidth = 90;
+        drawCenteredText('DONATION RECEIPT', y - 5, FS.receipt, bold, COLORS.primary);
+        y -= SP.sm;
 
-  const presidentName = settings?.presidentName || 'President Name';
-  const secretaryName = settings?.secretaryName || 'Secretary Name';
+        const titleW = bold.widthOfTextAtSize('DONATION RECEIPT', FS.receipt);
+        const titleX = (PAGE_W - titleW) / 2;
+        page.drawLine({
+            start: { x: titleX, y }, end: { x: titleX + titleW, y },
+            thickness: 1.2, color: COLORS.primary,
+        });
+        y -= SP.lg;
+        return y;
+    };
 
-  // Add Thirukkural quote in the center space between signatures (split into 2 lines to fit)
-  centerText('"Dream is not that which you see while sleeping', sigY + 5, 8.5, font, COLORS.muted);
-  centerText('it is something that does not let you sleep."', sigY - 5, 8.5, font, COLORS.muted);
-  centerText('- Dr. A.P.J. Abdul Kalam', sigY - 15, 7.5, font, COLORS.muted);
+    const drawFooter = (startY) => {
+        let y = startY;
+        drawBlueDivider(y);
+        y -= SP.md;
 
-  const presidentNameW = font.widthOfTextAtSize(presidentName, 9.5);
-  const secretaryNameW = font.widthOfTextAtSize(secretaryName, 9.5);
+        drawCenteredText('Thank you for your generous contribution.', y, 9.5, bold, COLORS.green);
+        y -= SP.md;
+        drawCenteredText('This receipt is computer generated and valid without signature.', y, FS.small, font, COLORS.darkGray);
+        y -= SP.md + 2;
 
-  const presidentLineW = Math.max(sigMinWidth, presidentNameW + sigPadding);
-  const secretaryLineW = Math.max(sigMinWidth, secretaryNameW + sigPadding);
+        drawCenteredLink('Website: abdulkalamassociation.vercel.app',
+            'https://abdulkalamassociation.vercel.app', y, FS.label, font, COLORS.link);
+        y -= SP.sm + 2;
+        drawCenteredLink('Instagram: @apjtrusttiruttani2024',
+            'https://www.instagram.com/apjtrusttiruttani2024?igsh=azZpdmp0b3Q1cHR1',
+            y, FS.label, font, COLORS.link);
+        y -= SP.sm + 2;
+        drawCenteredLink('Location: View on Google Maps',
+            'https://share.google/cQ4sLoKGJ58JCg5b2', y, FS.label, font, COLORS.link);
+        y -= SP.sm + 4;
 
-  const leftBlockX = MARGIN + 6;
-  const rightBlockW = Math.max(secretaryNameW, bold.widthOfTextAtSize('Secretary', 8.5));
-  const rightBlockX = PAGE_W - MARGIN - rightBlockW;
+        drawCenteredText('Created by MANOJ P|PMJ PROJECTS', y, FS.small, font, COLORS.darkGray);
+        return y;
+    };
 
-  page.drawText(presidentName, { x: leftBlockX, y: sigY, size: 9.5, font: bold, color: COLORS.text });
+    // =========================================================================
+    //  PAGE BORDERS
+    // =========================================================================
+    page.drawRectangle({
+        x: 10, y: 10, width: PAGE_W - 20, height: PAGE_H - 20,
+        borderColor: COLORS.primary, borderWidth: 1.2,
+    });
+    page.drawRectangle({
+        x: 14, y: 14, width: PAGE_W - 28, height: PAGE_H - 28,
+        borderColor: COLORS.divider, borderWidth: 0.5,
+    });
 
-  page.drawText('President', { x: 35, y: sigY - 16, size: 8.5, font, color: COLORS.muted });
+    // =========================================================================
+    //  WATERMARK
+    // =========================================================================
+    await drawWatermark();
+    await drawWatermark2();
 
-  page.drawText(secretaryName, { x: rightBlockX, y: sigY, size: 9.5, font: bold, color: COLORS.text });
-  page.drawText('Secretary', { x: 340, y: sigY - 16, size: 8.5, font, color: COLORS.muted });
+    // =========================================================================
+    //  HEADER
+    // =========================================================================
+    let y = await drawHeader();
 
-  // ---------- footer ----------
-  // Push footer slightly lower so it doesn't overlap with dynamic content when space is tight, but not too low to hit the border
-  centerText('Thank you for your generous contribution.', 34, 11, bold, COLORS.success);
-  centerText('Created by MANOJ P | +919345632035', 20, 7.5, font, COLORS.muted);
+    // =========================================================================
+    //  QR CODE BOX  (top-right)
+    // =========================================================================
 
-  const pdfBytes = await pdfDoc.save();
-  return pdfBytes;
+
+    // =========================================================================
+    //  RECEIPT INFO CARD
+    // =========================================================================
+    const infoCardH = 30;
+    const infoCardY = y - infoCardH;
+    drawCard(MARGIN, infoCardY, PAGE_W - 2 * MARGIN, infoCardH);
+
+    const recLabel = 'RECEIPT NO: ';
+    const recLabelW = bold.widthOfTextAtSize(recLabel, FS.label);
+    page.drawText(recLabel, {
+        x: MARGIN + CARD.padX, y: infoCardY + infoCardH / 2 - 3,
+        size: FS.label, font: bold, color: COLORS.darkGray,
+    });
+    page.drawText(String(receiptNumber), {
+        x: MARGIN + CARD.padX + recLabelW, y: infoCardY + infoCardH / 2 - 3,
+        size: FS.label + 1, font: bold, color: COLORS.primary,
+    });
+
+    const dateLabel = 'DATE: ';
+    const dateLabelW = bold.widthOfTextAtSize(dateLabel, FS.label);
+    const dateValW = font.widthOfTextAtSize(dateStr, FS.label);
+    const timeLabel = '  TIME: ';
+    const timeLabelW = bold.widthOfTextAtSize(timeLabel, FS.label);
+    const timeValW = font.widthOfTextAtSize(timeStr, FS.label);
+    const infoRightX = PAGE_W - MARGIN - CARD.padX - timeLabelW - timeValW;
+
+    page.drawText(dateLabel, {
+        x: infoRightX - dateLabelW - dateValW, y: infoCardY + infoCardH / 2 - 3,
+        size: FS.label, font: bold, color: COLORS.darkGray,
+    });
+    page.drawText(dateStr, {
+        x: infoRightX - dateValW, y: infoCardY + infoCardH / 2 - 3,
+        size: FS.label, font, color: COLORS.black,
+    });
+    page.drawText(timeLabel, {
+        x: infoRightX, y: infoCardY + infoCardH / 2 - 3,
+        size: FS.label, font: bold, color: COLORS.darkGray,
+    });
+    page.drawText(timeStr, {
+        x: infoRightX + timeLabelW, y: infoCardY + infoCardH / 2 - 3,
+        size: FS.label, font, color: COLORS.black,
+    });
+
+    y = infoCardY - SP.md;
+
+    // =========================================================================
+    //  DONOR DETAILS CARD
+    // =========================================================================
+    const donorFields = [
+        { label: 'Donor Name', value: donor.donorName },
+        { label: 'Mobile', value: donor.mobile },
+        { label: 'Address', value: addressDisplay },
+    ];
+    const donorCardH = SP.md + donorFields.length * 16 + SP.sm;
+    const donorCardY = y - donorCardH;
+
+    drawCard(MARGIN, donorCardY, PAGE_W - 2 * MARGIN, donorCardH);
+
+    page.drawRectangle({
+        x: MARGIN, y: donorCardY + donorCardH - 16,
+        width: PAGE_W - 2 * MARGIN, height: 16,
+        color: COLORS.primary,
+    });
+    const donorTitleW = bold.widthOfTextAtSize('DONOR DETAILS', FS.label);
+    page.drawText('DONOR DETAILS', {
+        x: MARGIN + (PAGE_W - 2 * MARGIN - donorTitleW) / 2,
+        y: donorCardY + donorCardH - 12,
+        size: FS.label, font: bold, color: COLORS.white,
+    });
+
+    const labelCol = MARGIN + CARD.padX;
+    const valueCol = MARGIN + 90;
+    let fieldY = donorCardY + donorCardH - 16 - SP.sm - 8;
+
+    donorFields.forEach(({ label, value }) => {
+        page.drawText(`${label}:`, {
+            x: labelCol, y: fieldY,
+            size: FS.label, font: bold, color: COLORS.darkGray,
+        });
+        page.drawText(String(value ?? ''), {
+            x: valueCol, y: fieldY,
+            size: FS.value, font, color: COLORS.black,
+            maxWidth: PAGE_W - MARGIN - valueCol - SP.sm,
+        });
+        fieldY -= 16;
+    });
+
+    y = donorCardY - SP.md;
+
+    // =========================================================================
+    //  DONATION DETAILS CARD
+    // =========================================================================
+    const donationFields = [
+        { label: 'Payment Mode', value: donor.paymentMode },
+        { label: 'Purpose', value: donor.purpose },
+        { label: 'Collector', value: donor.collector },
+    ];
+    const donationCardH = SP.md + (donationFields.length + 1) * 16 + SP.sm + 10;
+    const donationCardY = y - donationCardH;
+
+    drawCard(MARGIN, donationCardY, PAGE_W - 2 * MARGIN, donationCardH);
+
+    page.drawRectangle({
+        x: MARGIN, y: donationCardY + donationCardH - 16,
+        width: PAGE_W - 2 * MARGIN, height: 16,
+        color: COLORS.primary,
+    });
+    const donationTitleW = bold.widthOfTextAtSize('DONATION DETAILS', FS.label);
+    page.drawText('DONATION DETAILS', {
+        x: MARGIN + (PAGE_W - 2 * MARGIN - donationTitleW) / 2,
+        y: donationCardY + donationCardH - 12,
+        size: FS.label, font: bold, color: COLORS.white,
+    });
+
+    let donFieldY = donationCardY + donationCardH - 16 - SP.sm - 8;
+
+    // Donation amount — green bold large
+    const amountText = `Rs. ${donor.amount}`;
+    const amountSize = 13;
+    page.drawText('Donation Amount:', {
+        x: labelCol, y: donFieldY,
+        size: FS.label, font: bold, color: COLORS.darkGray,
+    });
+    page.drawText(amountText, {
+        x: valueCol, y: donFieldY,
+        size: amountSize, font: bold, color: COLORS.green,
+    });
+    donFieldY -= 20;
+
+    donationFields.forEach(({ label, value }) => {
+        page.drawText(`${label}:`, {
+            x: labelCol, y: donFieldY,
+            size: FS.label, font: bold, color: COLORS.darkGray,
+        });
+        page.drawText(String(value ?? ''), {
+            x: valueCol, y: donFieldY,
+            size: FS.value, font, color: COLORS.black,
+            maxWidth: PAGE_W - MARGIN - valueCol - SP.sm,
+        });
+        donFieldY -= 16;
+    });
+
+    y = donationCardY - SP.md;
+
+    // =========================================================================
+    //  QUOTE
+    // =========================================================================
+    drawDivider(y);
+    y -= SP.md;
+    drawCenteredText(
+        '"You have to dream before your dreams can come true."',
+        y, FS.small, font, COLORS.darkGray,
+    );
+    y -= SP.sm + 2;
+    drawCenteredText('- Dr. A.P.J. Abdul Kalam', y, FS.small, font, COLORS.darkGray);
+    y -= SP.md;
+    drawDivider(y);
+    y -= SP.xl;
+
+    // =========================================================================
+    //  SIGNATURES
+    // =========================================================================
+    drawSignature(presidentName, 'President', MARGIN + 6, y - 1, 'left');
+    drawCenteredText('+91 86087 70533                                                                                                                     +91 99941 87100', y - 9, FS.small, font, COLORS.darkGray, 'left');
+    drawSignature(secretaryName, 'Secretary', PAGE_W - MARGIN - 6, y, 'right');
+
+    y -= SP.xl + SP.md;
+
+    // =========================================================================
+    //  FOOTER
+    // =========================================================================
+    drawFooter(y);
+
+    // =========================================================================
+    //  SAVE & RETURN
+    // =========================================================================
+    const pdfBytes = await pdfDoc.save();
+    return pdfBytes;
 };
 
 module.exports = { generatePdfReceipt };
