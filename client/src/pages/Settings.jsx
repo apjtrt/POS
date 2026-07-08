@@ -37,12 +37,36 @@ const Settings = () => {
     }
   };
 
+  const handleDownloadBackup = async () => {
+    try {
+      toast.info('Generating backup...', { autoClose: 2000 });
+      const response = await api.get('/settings/backup', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `database_backup_${Date.now()}.json`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Backup downloaded successfully!');
+    } catch (error) {
+      toast.error('Failed to download backup. Make sure you are an admin.');
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
 
   return (
     <div className="max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-      <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+      <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
         <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-200">System Settings</h2>
+        <button
+          onClick={handleDownloadBackup}
+          className="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
+        >
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          Download Full Backup
+        </button>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">

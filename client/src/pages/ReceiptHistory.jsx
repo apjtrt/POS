@@ -65,7 +65,7 @@ const ReceiptHistory = () => {
       const allData = await fetchDonations(1, true);
       
       const headers = ['Receipt No', 'Date', 'Donor Name', 'Mobile', 'Street', 'Amount', 'Payment Mode', 'Collector'];
-      const rows = allData.map(d => [
+      const rows = (allData || []).map(d => [
         d.receiptNumber,
         format(new Date(d.date), 'dd-MMM-yyyy'),
         `"${d.donorName}"`,
@@ -106,7 +106,7 @@ const ReceiptHistory = () => {
       doc.text(`Generated on: ${format(new Date(), 'dd-MMM-yyyy HH:mm')}`, 14, 30);
 
       const tableColumn = ['Receipt No', 'Date', 'Donor Name', 'Mobile', 'Street', 'Amount', 'Payment Mode', 'Collector'];
-      const tableRows = allData.map(d => [
+      const tableRows = (allData || []).map(d => [
         d.receiptNumber,
         format(new Date(d.date), 'dd-MMM-yyyy'),
         d.donorName,
@@ -175,14 +175,14 @@ const ReceiptHistory = () => {
         <div className="flex gap-2">
           <button 
             onClick={exportToCSV}
-            disabled={exporting || donations.length === 0}
+            disabled={exporting || !donations || donations.length === 0}
             className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
           >
             <FileSpreadsheet className="w-4 h-4 mr-2" /> Export Excel
           </button>
           <button 
             onClick={exportToPDF}
-            disabled={exporting || donations.length === 0}
+            disabled={exporting || !donations || donations.length === 0}
             className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
           >
             <FileText className="w-4 h-4 mr-2" /> Export PDF
@@ -257,10 +257,10 @@ const ReceiptHistory = () => {
             <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
               {loading ? (
                 <tr><td colSpan="7" className="px-6 py-4 text-center text-sm text-slate-500">Loading...</td></tr>
-              ) : donations.length === 0 ? (
+              ) : (!donations || donations.length === 0) ? (
                 <tr><td colSpan="7" className="px-6 py-4 text-center text-sm text-slate-500">No receipts found.</td></tr>
               ) : (
-                donations.map((donor) => (
+                (donations || []).map((donor) => (
                   <tr key={donor.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400">{donor.receiptNumber}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">

@@ -58,3 +58,32 @@ exports.updateSettings = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.downloadBackup = async (req, res, next) => {
+  try {
+    if (req.user.role !== 'ADMIN') {
+      return res.status(403).json({ success: false, message: 'Only admins can download backups.' });
+    }
+
+    const donors = await prisma.donor.findMany();
+    const expenses = await prisma.expense.findMany();
+    const transfers = await prisma.cashTransfer.findMany();
+    const users = await prisma.user.findMany();
+    const settings = await prisma.settings.findMany();
+
+    const backupData = {
+      timestamp: new Date().toISOString(),
+      donors,
+      expenses,
+      transfers,
+      users,
+      settings
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename=database_backup_' + Date.now() + '.json');
+    res.send(JSON.stringify(backupData, null, 2));
+  } catch (error) {
+    next(error);
+  }
+};

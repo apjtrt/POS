@@ -53,10 +53,20 @@ app.use('/receipt', verifyRoutes); // Public route for QR code verification
 const errorHandler = require('./middleware/errorHandler');
 app.use(errorHandler);
 
+// --- CRASH PROTECTION SAFETY NETS ---
+process.on('uncaughtException', (err) => {
+  console.error('CRITICAL: Uncaught Exception caught! Keeping server alive:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('CRITICAL: Unhandled Rejection at:', promise, 'reason:', reason);
+});
+// ------------------------------------
+
 // Start Server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
 // Export prisma for usage in controllers/services
-module.exports = { prisma, app };
+module.exports = { prisma, app, server };
