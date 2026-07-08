@@ -1,5 +1,6 @@
+require('regenerator-runtime/runtime');
 const { PDFDocument, rgb, StandardFonts, PDFString } = require('pdf-lib');
-const QRCode = require('qrcode');
+const fontkit = require('@pdf-lib/fontkit');
 const fs = require('fs');
 const path = require('path');
 
@@ -20,10 +21,20 @@ const MARGIN = 28;
 
 const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) => {
   const pdfDoc = await PDFDocument.create();
+  pdfDoc.registerFontkit(fontkit);
   const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
 
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  let tamilFont;
+  try {
+    const tamilFontBytes = fs.readFileSync(path.join(__dirname, '../fonts/tamil.ttf'));
+    tamilFont = await pdfDoc.embedFont(tamilFontBytes);
+  } catch (err) {
+    console.error('Error loading Tamil font:', err);
+    tamilFont = bold; // fallback to bold (though it will error out on Tamil characters, it's better than crashing here)
+  }
 
   // ---------- helpers ----------
   const centerText = (text, y, size, f, color = COLORS.text) => {
@@ -74,7 +85,7 @@ const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) =
         y: (PAGE_H - targetH) / 2 - 10,
         width: targetW,
         height: targetH,
-        opacity: 0.06,
+        opacity: 0.15,
       });
     }
   } catch (err) {
@@ -111,7 +122,41 @@ const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) =
   centerText('(Affiliated to Nehru Yuva Kendra Sangathan (NYKS))', y, 7.5, font, COLORS.muted);
   y -= 11;
   centerText('REG. NO: 313/2024', y, 7.5, font, COLORS.muted);
-  y -= 20;
+  y -= 16;
+
+  // ---------- Custom Header Images ----------
+  // We will load images for the Tamil text to ensure perfect rendering.
+  const colY = y;
+
+  const drawTamilImg = async (filename, align, yOffset, targetHeight) => {
+    try {
+      const pngPath = path.join(__dirname, `../../client/public/images/${filename}.png`);
+      const jpgPath = path.join(__dirname, `../../client/public/images/${filename}.jpg`);
+      const imgPath = fs.existsSync(pngPath) ? pngPath : (fs.existsSync(jpgPath) ? jpgPath : null);
+
+      if (imgPath) {
+        const imgBytes = fs.readFileSync(imgPath);
+        const img = imgPath.endsWith('.png') ? await pdfDoc.embedPng(imgBytes) : await pdfDoc.embedJpg(imgBytes);
+        const dims = img.scale(1);
+        const targetW = targetHeight * (dims.width / dims.height);
+
+        let xPos = MARGIN;
+        if (align === 'center') xPos = (PAGE_W - targetW) / 2;
+        if (align === 'right') xPos = PAGE_W - MARGIN - targetW;
+
+        page.drawImage(img, { x: xPos, y: yOffset - targetHeight, width: targetW, height: targetHeight });
+      }
+    } catch (e) {
+      console.error(`Error loading ${filename}:`, e);
+    }
+  };
+
+  // Adjust target heights based on the image proportions (2 lines vs 1 line)
+  await drawTamilImg('tamil-left', 'left', colY + 10, 22);
+  await drawTamilImg('tamil-center', 'center', colY + 2, 10);
+  await drawTamilImg('tamil-right', 'right', colY + 10, 22);
+
+  y -= 24;
 
   hLine(y, MARGIN, PAGE_W - MARGIN, COLORS.primary, 1);
   y -= 22;
@@ -145,31 +190,29 @@ const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) =
 
   y = stripTop - 22 - 22;
 
-  // ---------- QR code (top-right, out of the way of the field list) ----------
-  // Aggressively clean frontendUrl (remove spaces, quotes, and trailing slashes)
-  const cleanFrontendUrl = frontendUrl.replace(/["'\s]/g, '').replace(/\/+$/, '');
-  const qrUrl = `${cleanFrontendUrl}/receipt/${receiptNumber}`;
-  const qrDataUrl = await QRCode.toDataURL(qrUrl, { margin: 1, color: { dark: '#0d2673' } });
-  const qrImageBytes = Buffer.from(qrDataUrl.split(',')[1], 'base64');
-  const qrImage = await pdfDoc.embedPng(qrImageBytes);
-  const qrSize = 66;
-  const qrX = PAGE_W - MARGIN - qrSize;
-  const qrY = y - qrSize + 10;
-  page.drawImage(qrImage, { x: qrX, y: qrY, width: qrSize, height: qrSize });
-  const scanLabel = 'Scan to verify';
-  const scanLabelW = font.widthOfTextAtSize(scanLabel, 6.5);
-  page.drawText(scanLabel, { x: qrX + (qrSize - scanLabelW) / 2, y: qrY - 10, size: 6.5, font, color: COLORS.muted });
-
   // ---------- field list ----------
   const leftCol = MARGIN + 4;
   const valueCol = MARGIN + 118;
-  const fieldMaxWidth = qrX - 12 - valueCol; // stop before QR code
+  const fieldMaxWidth = PAGE_W - MARGIN - valueCol; // use full width since QR code is removed
   const lineSpacing = 20;
+
+  let streetDisplay = donor.street || '';
+  const lowerStreet = streetDisplay.toLowerCase().trim();
+  if (
+    lowerStreet === 'kambar street' ||
+    lowerStreet === 'kumaran street' ||
+    lowerStreet === 'maruthi street' ||
+    lowerStreet === 'maruthi strret' // handling common typo based on prompt
+  ) {
+    streetDisplay = `${streetDisplay}, Subramaniya Nagar, Tiruttani - 631209`;
+  }
+
+  const addressDisplay = donor.doorNumber ? `${donor.doorNumber}, ${streetDisplay}` : streetDisplay;
 
   const fields = [
     { label: 'Donor Name', value: donor.donorName },
     { label: 'Mobile', value: donor.mobile },
-    { label: 'Address', value: `${donor.doorNumber || ''}, ${donor.street}` },
+    { label: 'Address', value: addressDisplay },
     { label: 'Payment Mode', value: donor.paymentMode },
     { label: 'Purpose', value: donor.purpose },
   ];
@@ -181,37 +224,39 @@ const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) =
   });
 
   y -= 4;
-  hLine(y, MARGIN, PAGE_W - MARGIN);
-  y -= 24;
-
-  // ---------- donation amount, emphasized ----------
-  page.drawText('DONATION AMOUNT', { x: leftCol, y, size: 8.5, font: bold, color: COLORS.muted });
-  const amountText = `Rs. ${donor.amount}`;
-  const amountSize = 20;
-  const amountW = bold.widthOfTextAtSize(amountText, amountSize);
-  page.drawText(amountText, {
-    x: PAGE_W - MARGIN - amountW, y: y - 6, size: amountSize, font: bold, color: COLORS.accent,
-  });
-  y -= 34;
-
-  hLine(y, MARGIN, PAGE_W - MARGIN);
-  y -= 24;
-
   // ---------- collector ----------
   page.drawText('Collector', { x: leftCol, y, size: 9, font: bold, color: COLORS.muted });
   page.drawText(String(donor.collector), { x: valueCol, y, size: 9.5, font, color: COLORS.text });
   y -= 30;
 
+  hLine(y, MARGIN, PAGE_W - MARGIN);
+  y -= 24;
+
+  // ---------- donation amount, emphasized ----------
+  page.drawText('DONATION AMOUNT', { x: leftCol, y, size: 15, font: bold, color: COLORS.text });
+  const amountText = `Rs. ${donor.amount}`;
+  const amountSize = 15;
+  const amountW = bold.widthOfTextAtSize(amountText, amountSize);
+  page.drawText(amountText, {
+    x: PAGE_W - MARGIN - amountW, y: y - 0, size: amountSize, font: bold, color: COLORS.accent,
+  });
+  y -= 20;
+
+  hLine(y, MARGIN, PAGE_W - MARGIN);
+  y -= 34;
   // ---------- association links ----------
+
   centerLink('Website: abdulkalamassociation.vercel.app', 'https://abdulkalamassociation.vercel.app', y, 8.5, font);
   y -= 13;
   centerLink('Instagram: @apjtrusttiruttani2024', 'https://www.instagram.com/apjtrusttiruttani2024?igsh=azZpdmp0b3Q1cHR1', y, 8.5, font);
   y -= 13;
   centerLink('Location: View on Google Maps', 'https://share.google/cQ4sLoKGJ58JCg5b2', y, 8.5, font);
-  y -= 24;
+  y -= 18;
+  centerText('CONTACT NUMBERS:+91 86087 70533 +91 99941 87100', y, 8.5, bold, COLORS.text);
+  y -= 12;
 
   hLine(y, MARGIN, PAGE_W - MARGIN);
-  y -= 34;
+  y -= 40; // reduced from 40 to give more room at the bottom
 
   // ---------- signature blocks ----------
   // Each underline is sized to its own name (min width so short names still look intentional),
@@ -223,6 +268,11 @@ const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) =
   const presidentName = settings?.presidentName || 'President Name';
   const secretaryName = settings?.secretaryName || 'Secretary Name';
 
+  // Add Thirukkural quote in the center space between signatures (split into 2 lines to fit)
+  centerText('"Dream is not that which you see while sleeping', sigY + 5, 8.5, font, COLORS.muted);
+  centerText('it is something that does not let you sleep."', sigY - 5, 8.5, font, COLORS.muted);
+  centerText('- Dr. A.P.J. Abdul Kalam', sigY - 15, 7.5, font, COLORS.muted);
+
   const presidentNameW = font.widthOfTextAtSize(presidentName, 9.5);
   const secretaryNameW = font.widthOfTextAtSize(secretaryName, 9.5);
 
@@ -230,19 +280,20 @@ const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) =
   const secretaryLineW = Math.max(sigMinWidth, secretaryNameW + sigPadding);
 
   const leftBlockX = MARGIN + 6;
-  const rightBlockX = PAGE_W - MARGIN - 6 - secretaryLineW;
+  const rightBlockW = Math.max(secretaryNameW, bold.widthOfTextAtSize('Secretary', 8.5));
+  const rightBlockX = PAGE_W - MARGIN - rightBlockW;
 
-  page.drawText(presidentName, { x: leftBlockX, y: sigY, size: 9.5, font, color: COLORS.text });
-  hLine(sigY - 5, leftBlockX, leftBlockX + presidentLineW, COLORS.line, 0.5);
-  page.drawText('President', { x: leftBlockX, y: sigY - 16, size: 8.5, font: bold, color: COLORS.muted });
+  page.drawText(presidentName, { x: leftBlockX, y: sigY, size: 9.5, font: bold, color: COLORS.text });
 
-  page.drawText(secretaryName, { x: rightBlockX, y: sigY, size: 9.5, font, color: COLORS.text });
-  hLine(sigY - 5, rightBlockX, rightBlockX + secretaryLineW, COLORS.line, 0.5);
-  page.drawText('Secretary', { x: rightBlockX, y: sigY - 16, size: 8.5, font: bold, color: COLORS.muted });
+  page.drawText('President', { x: 35, y: sigY - 16, size: 8.5, font, color: COLORS.muted });
+
+  page.drawText(secretaryName, { x: rightBlockX, y: sigY, size: 9.5, font: bold, color: COLORS.text });
+  page.drawText('Secretary', { x: 340, y: sigY - 16, size: 8.5, font, color: COLORS.muted });
 
   // ---------- footer ----------
-  centerText('Thank you for your generous contribution.', 42, 11, bold, COLORS.success);
-  centerText('Created by MANOJ P | PMJ PROJECTS', 28, 7.5, font, COLORS.muted);
+  // Push footer slightly lower so it doesn't overlap with dynamic content when space is tight, but not too low to hit the border
+  centerText('Thank you for your generous contribution.', 34, 11, bold, COLORS.success);
+  centerText('Created by MANOJ P | +919345632035', 20, 7.5, font, COLORS.muted);
 
   const pdfBytes = await pdfDoc.save();
   return pdfBytes;
