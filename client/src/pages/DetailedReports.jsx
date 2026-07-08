@@ -290,7 +290,7 @@ const DetailedReports = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={reports.streetWise}
+                    data={reports?.streetWise || []}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -298,7 +298,7 @@ const DetailedReports = () => {
                     paddingAngle={2}
                     dataKey="amount"
                   >
-                    {reports.streetWise.map((entry, index) => (
+                    {(reports?.streetWise || []).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -316,7 +316,7 @@ const DetailedReports = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                  {reports.streetWise.map((s, idx) => (
+                  {(reports?.streetWise || []).map((s, idx) => (
                     <tr key={idx}>
                       <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-200 flex items-center">
                         <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></span>
@@ -340,7 +340,7 @@ const DetailedReports = () => {
           <div className="p-6">
             <div className="h-64 mb-6">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={reports.collectorWise}>
+                <BarChart data={reports?.collectorWise || []}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.2} />
                   <XAxis dataKey="name" tick={{fill: '#64748b'}} />
                   <YAxis tick={{fill: '#64748b'}} />
@@ -360,7 +360,7 @@ const DetailedReports = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                  {reports.collectorWise.map((c, idx) => (
+                  {(reports?.collectorWise || []).map((c, idx) => (
                     <tr key={idx}>
                       <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-200">{c.name}</td>
                       <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400 text-right">{c.count}</td>
@@ -390,7 +390,7 @@ const DetailedReports = () => {
           <div className="p-6">
             <div className="h-72 mb-6">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={reports.dateWise}>
+                <BarChart data={reports?.dateWise || []}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.2} />
                   <XAxis dataKey="date" tickFormatter={(date) => format(new Date(date), 'MMM dd')} tick={{fill: '#64748b'}} />
                   <YAxis tick={{fill: '#64748b'}} />
@@ -413,7 +413,7 @@ const DetailedReports = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                  {reports.dateWise.map((d, idx) => (
+                  {(reports?.dateWise || []).map((d, idx) => (
                     <tr key={idx}>
                       <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-200">
                         {format(new Date(d.date), 'dd MMM yyyy, EEEE')}

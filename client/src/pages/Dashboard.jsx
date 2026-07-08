@@ -167,7 +167,7 @@ const Dashboard = () => {
           <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">Street Wise Collection</h2>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.streetWise}>
+              <BarChart data={stats?.streetWise || []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.2} />
                 <XAxis dataKey="name" tick={{ fill: '#64748b' }} />
                 <YAxis tick={{ fill: '#64748b' }} />
@@ -188,7 +188,7 @@ const Dashboard = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={stats.paymentWise}
+                  data={stats?.paymentWise || []}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -196,7 +196,7 @@ const Dashboard = () => {
                   paddingAngle={5}
                   dataKey="value"
                 >
-                  {stats.paymentWise.map((entry, index) => (
+                  {(stats?.paymentWise || []).map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -208,7 +208,7 @@ const Dashboard = () => {
           </div>
           {/* Legend */}
           <div className="flex justify-center gap-4 mt-4">
-            {stats.paymentWise.map((entry, index) => (
+            {(stats?.paymentWise || []).map((entry, index) => (
               <div key={entry.name} className="flex items-center text-sm text-slate-600 dark:text-slate-400">
                 <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
                 {entry.name}: ₹{entry.value}
@@ -233,14 +233,14 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
-              {stats.topDonors.map((donor, idx) => (
+              {(stats?.topDonors || []).map((donor, idx) => (
                 <tr key={idx}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-200">{donor.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{donor.mobile}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-semibold">₹{donor.amount}</td>
                 </tr>
               ))}
-              {stats.topDonors.length === 0 && (
+              {(!stats?.topDonors || stats.topDonors.length === 0) && (
                 <tr>
                   <td colSpan="3" className="px-6 py-4 text-center text-sm text-slate-500 dark:text-slate-400">No donations yet.</td>
                 </tr>
@@ -251,7 +251,7 @@ const Dashboard = () => {
       </div>
 
       {/* Collector Balances Table for Admin */}
-      {user?.role === 'ADMIN' && stats.collectorBalances && stats.collectorBalances.length > 0 && (
+      {user?.role === 'ADMIN' && stats?.collectorBalances && stats.collectorBalances.length > 0 && (
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mt-6">
           <div className="p-6 border-b border-slate-200 dark:border-slate-700">
             <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Collector Cash Balances</h2>

@@ -187,7 +187,7 @@ function Expenses() {
             />
           </div>
 
-          {advanceStats && advanceStats.remainingBalance > 0 && (
+          {advanceStats && advanceStats?.remainingBalance > 0 && (
             <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
               <label className="block text-sm font-medium text-blue-900 mb-3">How did you pay for this?</label>
               <div className="flex gap-4">
@@ -288,11 +288,11 @@ function Expenses() {
         <h3 className="text-lg font-bold text-gray-800 mb-4">My Past Expenses</h3>
         {loading ? (
           <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
-        ) : expenses.length === 0 ? (
+        ) : (!expenses || expenses.length === 0) ? (
           <p className="text-gray-500 text-center py-4">No expenses submitted yet.</p>
         ) : (
           <div className="space-y-4">
-            {expenses.map(expense => (
+            {(expenses || []).map(expense => (
               <div key={expense.id} className="border border-gray-100 rounded-xl p-4 flex justify-between items-start bg-gray-50">
                 <div>
                   <p className="font-bold text-gray-800">₹{expense.amount}</p>

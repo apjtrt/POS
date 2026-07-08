@@ -164,7 +164,7 @@ exports.getAdvanceBalance = async (req, res, next) => {
       }
     });
     
-    const totalAdvanceReceived = advances.reduce((sum, a) => sum + a.amount, 0);
+    const totalAdvanceReceived = (advances || []).reduce((sum, a) => sum + (a?.amount || 0), 0);
 
     // 2. Total Deducted from Advance
     const expenses = await prisma.expense.findMany({
@@ -175,7 +175,7 @@ exports.getAdvanceBalance = async (req, res, next) => {
       }
     });
 
-    const totalSpentFromAdvance = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const totalSpentFromAdvance = (expenses || []).reduce((sum, e) => sum + (e?.amount || 0), 0);
 
     res.json({
       success: true,
