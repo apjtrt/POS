@@ -1,7 +1,9 @@
 const prisma = require('../config/db');
 const generateReceiptNumber = require('../utils/generateReceiptNumber');
 const { generatePdfReceipt } = require('../services/pdfService');
-const { uploadToGithub, uploadImageToGithub } = require('../services/githubService');
+
+
+const { uploadImageToGithub } = require('../services/githubService');
 
 exports.createDonation = async (req, res, next) => {
   try {
@@ -58,32 +60,24 @@ exports.createDonation = async (req, res, next) => {
         paymentMode,
         purpose,
         remarks,
-  collector: req.user.name,
-  userId: req.user.id,
-  latitude: latitude ? parseFloat(latitude) : null,
-  longitude: longitude ? parseFloat(longitude) : null,
-  upiScreenshot: finalUpiUrl
-}
+        collector: req.user.name,
+        userId: req.user.id,
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null,
+        upiScreenshot: finalUpiUrl
+      }
     });
 
-    // Generate PDF
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const settings = await prisma.settings.findFirst();
-    const pdfBytes = await generatePdfReceipt(donor, receiptNumber, frontendUrl, settings);
+    // We no longer upload to GitHub. Serve PDFs dynamically from the backend directly.
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['x-forwarded-host'] || req.get('host');
+    const backendUrl = `${protocol}://${host}`;
+    const pdfUrl = `${backendUrl}/api/donations/${receiptNumber}/pdf`;
     
-    // Upload to GitHub
-    const timestamp = Date.now();
-    const filename = `Receipt-${receiptNumber}-${timestamp}.pdf`;
-    let pdfUrl = '';
-    try {
-      pdfUrl = await uploadToGithub(pdfBytes, filename);
-      await prisma.donor.update({
-        where: { id: donor.id },
-        data: { pdfUrl }
-      });
-    } catch (e) {
-      console.error('Github upload failed, continuing without URL.');
-    }
+    await prisma.donor.update({
+      where: { id: donor.id },
+      data: { pdfUrl }
+    });
 
     res.status(201).json({
       success: true,
