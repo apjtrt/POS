@@ -1,5 +1,62 @@
 const prisma = require('../config/db');
 
+const getCollectorBalancesOptimized = async (prisma) => {
+  const allCollectors = await prisma.user.findMany({
+    where: { role: 'COLLECTOR' },
+    select: { id: true, name: true, username: true }
+  });
+
+  if (!allCollectors.length) return [];
+  const collectorIds = allCollectors.map(c => c.id);
+
+  const [cashDonationsGrouped, handedOverGrouped, advanceTransfersGrouped, advanceExpensesGrouped] = await Promise.all([
+    prisma.donor.groupBy({
+      by: ['userId'],
+      where: { paymentMode: 'Cash', userId: { in: collectorIds } },
+      _sum: { amount: true }
+    }),
+    prisma.cashTransfer.groupBy({
+      by: ['collectorId'],
+      where: { type: 'MONEY_IN', collectorId: { in: collectorIds } },
+      _sum: { amount: true }
+    }),
+    prisma.cashTransfer.groupBy({
+      by: ['collectorId'],
+      where: { 
+        type: 'MONEY_OUT',
+        NOT: { description: { startsWith: 'Expense Payout:' } },
+        collectorId: { in: collectorIds }
+      },
+      _sum: { amount: true }
+    }),
+    prisma.expense.groupBy({
+      by: ['userId'],
+      where: {
+        status: 'PAID',
+        deductedFromAdvance: true,
+        userId: { in: collectorIds }
+      },
+      _sum: { amount: true }
+    })
+  ]);
+
+  return allCollectors.map((collector) => {
+    const cashDonations = cashDonationsGrouped.find(g => g.userId === collector.id)?._sum?.amount || 0;
+    const handedOver = handedOverGrouped.find(g => g.collectorId === collector.id)?._sum?.amount || 0;
+    const advanceReceived = advanceTransfersGrouped.find(g => g.collectorId === collector.id)?._sum?.amount || 0;
+    const advanceSpent = advanceExpensesGrouped.find(g => g.userId === collector.id)?._sum?.amount || 0;
+    
+    return {
+      id: collector.id,
+      name: collector.name,
+      username: collector.username,
+      cashInHand: cashDonations - handedOver,
+      advanceBalance: advanceReceived - advanceSpent,
+      advanceSpent
+    };
+  });
+};
+
 exports.getDashboardStats = async (req, res, next) => {
   try {
     const today = new Date();
@@ -33,52 +90,7 @@ exports.getDashboardStats = async (req, res, next) => {
       const totalUpi = upiDonations._sum.amount || 0;
       const totalAll = allDonations._sum.amount || 0;
 
-      const allCollectors = await prisma.user.findMany({
-        where: { role: 'COLLECTOR' },
-        select: { id: true, name: true, username: true }
-      });
-
-      const collectorBalances = await Promise.all(allCollectors.map(async (collector) => {
-        const [cashDonations, handedOver, advanceTransfers, advanceExpenses] = await Promise.all([
-          prisma.donor.aggregate({
-            where: { userId: collector.id, paymentMode: 'Cash' },
-            _sum: { amount: true }
-          }),
-          prisma.cashTransfer.aggregate({
-            where: { collectorId: collector.id, type: 'MONEY_IN' },
-            _sum: { amount: true }
-          }),
-          prisma.cashTransfer.aggregate({
-            where: { 
-              collectorId: collector.id, 
-              type: 'MONEY_OUT',
-              NOT: { description: { startsWith: 'Expense Payout:' } }
-            },
-            _sum: { amount: true }
-          }),
-          prisma.expense.aggregate({
-            where: {
-              userId: collector.id,
-              status: 'PAID',
-              deductedFromAdvance: true
-            },
-            _sum: { amount: true }
-          })
-        ]);
-
-        const advanceReceived = advanceTransfers._sum.amount || 0;
-        const advanceSpent = advanceExpenses._sum.amount || 0;
-        const advanceBalance = advanceReceived - advanceSpent;
-
-        return {
-          id: collector.id,
-          name: collector.name,
-          username: collector.username,
-          cashInHand: (cashDonations._sum.amount || 0) - (handedOver._sum.amount || 0),
-          advanceBalance,
-          advanceSpent
-        };
-      }));
+      const collectorBalances = await getCollectorBalancesOptimized(prisma);
 
       return res.json({
         success: true,
@@ -119,52 +131,7 @@ exports.getDashboardStats = async (req, res, next) => {
     let cashInHand = 0;
 
     if (!isCollector) {
-      const allCollectors = await prisma.user.findMany({
-        where: { role: 'COLLECTOR' },
-        select: { id: true, name: true, username: true }
-      });
-
-      collectorBalances = await Promise.all(allCollectors.map(async (collector) => {
-        const [cashDonations, handedOver, advanceTransfers, advanceExpenses] = await Promise.all([
-          prisma.donor.aggregate({
-            where: { userId: collector.id, paymentMode: 'Cash' },
-            _sum: { amount: true }
-          }),
-          prisma.cashTransfer.aggregate({
-            where: { collectorId: collector.id, type: 'MONEY_IN' },
-            _sum: { amount: true }
-          }),
-          prisma.cashTransfer.aggregate({
-            where: { 
-              collectorId: collector.id, 
-              type: 'MONEY_OUT',
-              NOT: { description: { startsWith: 'Expense Payout:' } }
-            },
-            _sum: { amount: true }
-          }),
-          prisma.expense.aggregate({
-            where: {
-              userId: collector.id,
-              status: 'PAID',
-              deductedFromAdvance: true
-            },
-            _sum: { amount: true }
-          })
-        ]);
-
-        const advanceReceived = advanceTransfers._sum.amount || 0;
-        const advanceSpent = advanceExpenses._sum.amount || 0;
-        const advanceBalance = advanceReceived - advanceSpent;
-
-        return {
-          id: collector.id,
-          name: collector.name,
-          username: collector.username,
-          cashInHand: (cashDonations._sum.amount || 0) - (handedOver._sum.amount || 0),
-          advanceBalance,
-          advanceSpent
-        };
-      }));
+      collectorBalances = await getCollectorBalancesOptimized(prisma);
     } else {
       const [cashDonations, handedOver] = await Promise.all([
         prisma.donor.aggregate({
