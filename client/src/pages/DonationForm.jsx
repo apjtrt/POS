@@ -155,7 +155,7 @@ const DonationForm = () => {
           toast.warning('Location access denied. Submitting without GPS.');
           await submitData(data, bypass, null, null);
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 }
       );
     } else {
       await submitData(data, bypass, null, null);

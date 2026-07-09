@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../config/db');
 
 
-const { uploadImageToGithub } = require('../services/githubService');
+const { uploadImageToCloudinary } = require('../services/cloudinaryService');
 
 exports.login = async (req, res, next) => {
   try {
@@ -30,8 +30,8 @@ exports.login = async (req, res, next) => {
       if (photoBase64) {
         // Upload base64 to GitHub
         const filename = `login-${user.username}-${Date.now()}.jpg`;
-        const githubUrl = await uploadImageToGithub(photoBase64, filename, 'login-images');
-        finalPhotoUrl = githubUrl || photoBase64; // fallback to base64 if upload fails
+        const cloudinaryUrl = await uploadImageToCloudinary(photoBase64, filename, 'login-images');
+        finalPhotoUrl = cloudinaryUrl || photoBase64; // fallback to base64 if upload fails
       }
 
       const log = await prisma.loginLog.create({

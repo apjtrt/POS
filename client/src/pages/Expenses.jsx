@@ -84,7 +84,7 @@ function Expenses() {
           toast.warning('Location access denied. Submitting without GPS.');
           await submitData(null, null);
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 }
       );
     } else {
       await submitData(null, null);

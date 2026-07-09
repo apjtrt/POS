@@ -1,5 +1,5 @@
 const prisma = require('../config/db');
-const { uploadBackupToGithub } = require('./githubService');
+const { uploadBackupToCloudinary } = require('./cloudinaryService');
 
 const performDatabaseBackup = async () => {
   try {
@@ -29,7 +29,7 @@ const performDatabaseBackup = async () => {
     const filename = `db-backup-${dateStr}.json`;
 
     console.log(`Uploading backup file: ${filename}`);
-    const downloadUrl = await uploadBackupToGithub(jsonString, filename);
+    const downloadUrl = await uploadBackupToCloudinary(jsonString, filename);
 
     if (downloadUrl) {
       console.log('Automated backup successful. URL:', downloadUrl);
