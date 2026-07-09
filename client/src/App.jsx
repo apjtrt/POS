@@ -21,17 +21,18 @@ import TransferHistory from './pages/TransferHistory';
 
 // Layout
 import MainLayout from './components/layout/MainLayout';
+import LoadingScreen from './components/LoadingScreen';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  if (loading) return <LoadingScreen message="Authenticating..." />;
   if (!user) return <Navigate to="/login" />;
   return <MainLayout>{children}</MainLayout>;
 };
 
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  if (loading) return <LoadingScreen message="Verifying access..." />;
   if (!user || user.role !== 'ADMIN') return <Navigate to="/" />;
   return <MainLayout>{children}</MainLayout>;
 };
