@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 import { Download, Search, Filter, Trash2, Send, MapPin, FileSpreadsheet, FileText, Image } from 'lucide-react';
+import TableRowSkeleton from '../components/TableRowSkeleton';
 import { format } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
 import jsPDF from 'jspdf';
@@ -256,7 +257,7 @@ const ReceiptHistory = () => {
             </thead>
             <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
               {loading ? (
-                <tr><td colSpan="7" className="px-6 py-4 text-center text-sm text-slate-500">Loading...</td></tr>
+                <TableRowSkeleton columns={8} rows={6} />
               ) : (!donations || donations.length === 0) ? (
                 <tr><td colSpan="7" className="px-6 py-4 text-center text-sm text-slate-500">No receipts found.</td></tr>
               ) : (

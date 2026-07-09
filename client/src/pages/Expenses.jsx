@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, MapPin, Send, Loader2, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Camera, MapPin, Send, Loader2, CheckCircle, XCircle, Clock, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'react-toastify';
+import ListSkeleton from '../components/ListSkeleton';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -287,7 +288,7 @@ function Expenses() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <h3 className="text-lg font-bold text-gray-800 mb-4">My Past Expenses</h3>
         {loading ? (
-          <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
+          <ListSkeleton items={3} />
         ) : (!expenses || expenses.length === 0) ? (
           <p className="text-gray-500 text-center py-4">No expenses submitted yet.</p>
         ) : (

@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { IndianRupee, Users, Receipt, TrendingUp, ChevronRight, ArrowDownToLine, ArrowUpFromLine, Wallet } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import DashboardSkeleton from '../components/DashboardSkeleton';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -26,7 +27,7 @@ const Dashboard = () => {
     fetchStats();
   }, []);
 
-  if (loading) return <div className="animate-pulse">Loading dashboard...</div>;
+  if (loading) return <DashboardSkeleton />;
   if (!stats) return null;
 
   if (stats.isCashier) {
