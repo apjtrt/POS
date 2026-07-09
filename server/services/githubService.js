@@ -3,7 +3,7 @@ const axios = require('axios');
 const uploadToGithub = async (pdfBytes, filename) => {
   const token = process.env.GITHUB_TOKEN;
   const repo = process.env.GITHUB_REPO; // format: "username/repo"
-  
+
   if (!token || !repo || token.includes('your_github_token_here')) {
     console.log('GitHub integration not fully configured. Skipping actual upload.');
     return `https://mock-github-url.com/${repo}/${filename}`;
@@ -37,7 +37,7 @@ const uploadToGithub = async (pdfBytes, filename) => {
 const uploadImageToGithub = async (base64Data, filename, folder = 'images') => {
   const token = process.env.GITHUB_TOKEN;
   const repo = process.env.GITHUB_REPO;
-  
+
   if (!token || !repo || token.includes('your_github_token_here')) {
     console.log('GitHub integration not configured. Skipping image upload.');
     return null;
@@ -68,12 +68,11 @@ const uploadImageToGithub = async (base64Data, filename, folder = 'images') => {
     return null; // Return null so the app doesn't crash on image upload failure
   }
 };
-};
 
 const uploadBackupToGithub = async (jsonString, filename) => {
   const token = process.env.GITHUB_TOKEN;
   const repo = process.env.GITHUB_REPO;
-  
+
   if (!token || !repo || token.includes('your_github_token_here')) {
     console.log('GitHub integration not configured. Skipping backup upload.');
     return null;
