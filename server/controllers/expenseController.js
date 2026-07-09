@@ -1,7 +1,7 @@
 const prisma = require('../config/db');
 
 
-const { uploadImageToGithub } = require('../services/githubService');
+const { uploadImageToCloudinary } = require('../services/cloudinaryService');
 
 exports.createExpense = async (req, res, next) => {
   try {
@@ -14,9 +14,9 @@ exports.createExpense = async (req, res, next) => {
     let finalPhotoUrl = billPhotoBase64;
     if (billPhotoBase64.length > 500) { // arbitrary threshold to check if it's base64 and not already a url
       const filename = `expense-${req.user.id}-${Date.now()}.jpg`;
-      const githubUrl = await uploadImageToGithub(billPhotoBase64, filename, 'expense-bills');
-      if (githubUrl) {
-        finalPhotoUrl = githubUrl;
+      const cloudinaryUrl = await uploadImageToCloudinary(billPhotoBase64, filename, 'expense-bills');
+      if (cloudinaryUrl) {
+        finalPhotoUrl = cloudinaryUrl;
       }
     }
 

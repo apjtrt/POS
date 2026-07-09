@@ -5,6 +5,17 @@ const fs = require('fs');
 const path = require('path');
 const QRCode = require('qrcode');
 
+let cachedTamilFontBytes = null;
+const cachedImageBytes = {};
+
+const getImageBytes = (imgPath) => {
+    if (!cachedImageBytes[imgPath]) {
+        if (!fs.existsSync(imgPath)) return null;
+        cachedImageBytes[imgPath] = Uint8Array.from(fs.readFileSync(imgPath));
+    }
+    return cachedImageBytes[imgPath];
+};
+
 // =============================================================================
 //  DESIGN TOKENS
 // =============================================================================
@@ -57,8 +68,10 @@ const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) =
 
     let tamilFont;
     try {
-        const tamilFontBytes = Uint8Array.from(fs.readFileSync(path.join(__dirname, '../fonts/tamil.ttf')));
-        tamilFont = await pdfDoc.embedFont(tamilFontBytes);
+        if (!cachedTamilFontBytes) {
+            cachedTamilFontBytes = Uint8Array.from(fs.readFileSync(path.join(__dirname, '../fonts/tamil.ttf')));
+        }
+        tamilFont = await pdfDoc.embedFont(cachedTamilFontBytes);
     } catch (err) {
         console.error('Error loading Tamil font:', err);
         tamilFont = bold;
@@ -142,8 +155,8 @@ const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) =
     const drawWatermark = async () => {
         try {
             const bgPath = path.join(__dirname, '../../client/public/images/logo1.jpeg');
-            if (fs.existsSync(bgPath)) {
-                const bgBytes = Uint8Array.from(fs.readFileSync(bgPath));
+            const bgBytes = getImageBytes(bgPath);
+            if (bgBytes) {
                 let bgImage;
                 try {
                     bgImage = await pdfDoc.embedJpg(bgBytes);
@@ -167,8 +180,8 @@ const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) =
     const drawWatermark2 = async () => {
         try {
             const bgPath = path.join(__dirname, '../../client/public/images/bg.jpg');
-            if (fs.existsSync(bgPath)) {
-                const bgBytes = Uint8Array.from(fs.readFileSync(bgPath));
+            const bgBytes = getImageBytes(bgPath);
+            if (bgBytes) {
                 let bgImage;
                 try {
                     bgImage = await pdfDoc.embedJpg(bgBytes);
@@ -197,8 +210,8 @@ const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) =
     const drawLogo = async (centerY) => {
         try {
             const logoPath = path.join(__dirname, '../../client/public/images/logo1.png');
-            if (fs.existsSync(logoPath)) {
-                const logoBytes = Uint8Array.from(fs.readFileSync(logoPath));
+            const logoBytes = getImageBytes(logoPath);
+            if (logoBytes) {
                 const logoImage = await pdfDoc.embedPng(logoBytes);
                 const logoSize = 46;
                 page.drawImage(logoImage, {
@@ -213,8 +226,8 @@ const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) =
     const drawLogo2 = async (centerY) => {
         try {
             const logoPath = path.join(__dirname, '../../client/public/images/logo.png');
-            if (fs.existsSync(logoPath)) {
-                const logoBytes = Uint8Array.from(fs.readFileSync(logoPath));
+            const logoBytes = getImageBytes(logoPath);
+            if (logoBytes) {
                 const logoImage = await pdfDoc.embedPng(logoBytes);
                 const logoSize = 46;
                 page.drawImage(logoImage, {
@@ -233,7 +246,7 @@ const generatePdfReceipt = async (donor, receiptNumber, frontendUrl, settings) =
             const imgPath = fs.existsSync(pngPath) ? pngPath
                 : fs.existsSync(jpgPath) ? jpgPath : null;
             if (!imgPath) return;
-            const imgBytes = Uint8Array.from(fs.readFileSync(imgPath));
+            const imgBytes = getImageBytes(imgPath);
             const img = imgPath.endsWith('.png')
                 ? await pdfDoc.embedPng(imgBytes)
                 : await pdfDoc.embedJpg(imgBytes);

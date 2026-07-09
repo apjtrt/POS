@@ -1,8 +1,9 @@
 const prisma = require('../config/db');
+const { getSettings, clearSettingsCache } = require('../services/settingsCache');
 
 exports.getSettings = async (req, res, next) => {
   try {
-    let settings = await prisma.settings.findFirst();
+    let settings = await getSettings();
     if (!settings) {
       settings = await prisma.settings.create({
         data: {
@@ -53,6 +54,9 @@ exports.updateSettings = async (req, res, next) => {
         streetLinks
       }
     });
+
+    clearSettingsCache(); // Clear the cache so it fetches the fresh settings next time
+
     res.json({ success: true, data: settings });
   } catch (error) {
     next(error);

@@ -1,9 +1,10 @@
 const prisma = require('../config/db');
 const generateReceiptNumber = require('../utils/generateReceiptNumber');
 const { generatePdfReceipt } = require('../services/pdfService');
+const { getSettings } = require('../services/settingsCache');
 
 
-const { uploadImageToGithub } = require('../services/githubService');
+const { uploadImageToCloudinary } = require('../services/cloudinaryService');
 
 exports.createDonation = async (req, res, next) => {
   try {
@@ -43,9 +44,9 @@ exports.createDonation = async (req, res, next) => {
     let finalUpiUrl = upiScreenshot || null;
     if (upiScreenshot && upiScreenshot.length > 500) {
       const filename = `upi-${receiptNumber}-${Date.now()}.jpg`;
-      const githubUrl = await uploadImageToGithub(upiScreenshot, filename, 'upi-screenshots');
-      if (githubUrl) {
-        finalUpiUrl = githubUrl;
+      const cloudinaryUrl = await uploadImageToCloudinary(upiScreenshot, filename, 'upi-screenshots');
+      if (cloudinaryUrl) {
+        finalUpiUrl = cloudinaryUrl;
       }
     }
 
@@ -179,7 +180,7 @@ exports.getDonationPdf = async (req, res, next) => {
     }
     
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const settings = await prisma.settings.findFirst();
+    const settings = await getSettings();
     const pdfBytes = await generatePdfReceipt(donor, receiptNumber, frontendUrl, settings);
     
     res.setHeader('Content-Type', 'application/pdf');
