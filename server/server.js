@@ -7,6 +7,7 @@ const prisma = require('./config/db');
 const cron = require('node-cron');
 const { performDatabaseBackup } = require('./services/backupService');
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (Render)
 const PORT = process.env.PORT || 5000;
 
 // Middleware
