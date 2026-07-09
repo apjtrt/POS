@@ -156,26 +156,28 @@ exports.getAdvanceBalance = async (req, res, next) => {
     const collectorId = req.query.collectorId ? parseInt(req.query.collectorId) : req.user.id;
     
     // 1. Total Advances Given (MONEY_OUT transfers not labeled as "Expense Payout")
-    const advances = await prisma.cashTransfer.findMany({
+    const advances = await prisma.cashTransfer.aggregate({
       where: {
         collectorId: collectorId,
         type: 'MONEY_OUT',
         NOT: { description: { startsWith: 'Expense Payout:' } }
-      }
+      },
+      _sum: { amount: true }
     });
     
-    const totalAdvanceReceived = (advances || []).reduce((sum, a) => sum + (a?.amount || 0), 0);
+    const totalAdvanceReceived = advances._sum.amount || 0;
 
     // 2. Total Deducted from Advance
-    const expenses = await prisma.expense.findMany({
+    const expenses = await prisma.expense.aggregate({
       where: {
         userId: collectorId,
         status: 'PAID',
         deductedFromAdvance: true
-      }
+      },
+      _sum: { amount: true }
     });
 
-    const totalSpentFromAdvance = (expenses || []).reduce((sum, e) => sum + (e?.amount || 0), 0);
+    const totalSpentFromAdvance = expenses._sum.amount || 0;
 
     res.json({
       success: true,
