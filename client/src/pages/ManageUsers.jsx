@@ -66,9 +66,9 @@ const ManageUsers = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Create Form */}
         <div className="lg:col-span-1">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex items-center">
-              <UserPlus className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+          <div className="saas-card rounded-xl shadow-sm border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/50 flex items-center">
+              <UserPlus className="h-5 w-5 mr-2 text-primary-600 dark:text-primary-400" />
               <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">New Collector</h2>
             </div>
             <form onSubmit={handleCreate} className="p-6 space-y-4">
@@ -77,7 +77,7 @@ const ManageUsers = () => {
                 <input 
                   type="text" required
                   value={name} onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-primary-500 focus:border-blue-500" 
                   placeholder="e.g. John Doe"
                 />
               </div>
@@ -86,7 +86,7 @@ const ManageUsers = () => {
                 <input 
                   type="text" required
                   value={username} onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-primary-500 focus:border-blue-500" 
                   placeholder="e.g. john123"
                 />
               </div>
@@ -95,7 +95,7 @@ const ManageUsers = () => {
                 <input 
                   type="password" required minLength="6"
                   value={password} onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-primary-500 focus:border-blue-500" 
                   placeholder="Minimum 6 characters"
                 />
               </div>
@@ -104,7 +104,7 @@ const ManageUsers = () => {
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-700 dark:text-white"
                 >
                   <option value="COLLECTOR">Collector</option>
                   <option value="CASHIER">Cashier</option>
@@ -113,7 +113,7 @@ const ManageUsers = () => {
               <button
                 type="submit"
                 disabled={creating}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
               >
                 {creating ? 'Creating...' : 'Create Account'}
               </button>
@@ -123,7 +123,7 @@ const ManageUsers = () => {
 
         {/* User List */}
         <div className="lg:col-span-2">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden h-full">
+          <div className="saas-card rounded-xl shadow-sm border border-slate-200/50 dark:border-slate-700/50 overflow-hidden h-full">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
                 <thead className="bg-slate-50 dark:bg-slate-900/50">
@@ -135,7 +135,7 @@ const ManageUsers = () => {
                     <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                <tbody className="saas-card divide-y divide-slate-200 dark:divide-slate-700">
                   {loading ? (
                     <tr><td colSpan="4" className="px-6 py-4 text-center text-sm text-slate-500">Loading...</td></tr>
                   ) : users.length === 0 ? (

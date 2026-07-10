@@ -90,17 +90,17 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white dark:bg-slate-800 p-8 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700">
+      <div className="max-w-md w-full space-y-8 saas-card p-8 md:p-10 z-10">
         <div>
-          <div className="mx-auto h-12 w-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-            {step === 1 ? <Lock className="h-6 w-6 text-blue-600 dark:text-blue-300" /> : <Camera className="h-6 w-6 text-blue-600 dark:text-blue-300" />}
+          <div className="mx-auto h-12 w-12 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
+            {step === 1 ? <Lock className="h-6 w-6 text-primary-600 dark:text-primary-300" /> : <Camera className="h-6 w-6 text-primary-600 dark:text-primary-300" />}
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900 dark:text-white">
             {step === 1 ? 'Admin Login' : 'Secure Verification'}
           </h2>
           <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
             Dr. A.P.J. Abdul Kalam Youth Welfare Association Tiruttani
-            Created by MANOJ P | <a href="https://pmjprojects.vercel.app" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">PMJ Projects</a>
+            Created by MANOJ P | <a href="https://pmjprojects.vercel.app" target="_blank" rel="noopener noreferrer" className="text-primary-600 dark:text-primary-400 hover:underline">PMJ Projects</a>
           </p>
         </div>
 
@@ -113,7 +113,7 @@ const Login = () => {
                   name="username"
                   type="text"
                   required
-                  className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-primary-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   placeholder="Username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -125,7 +125,7 @@ const Login = () => {
                   name="password"
                   type="password"
                   required
-                  className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-primary-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -136,7 +136,7 @@ const Login = () => {
             <div>
               <button
                 type="submit"
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
               >
                 Continue <ArrowRight className="ml-2 h-4 w-4 mt-0.5" />
               </button>
@@ -168,7 +168,7 @@ const Login = () => {
                   if (stream) stream.getTracks().forEach(track => track.stop());
                   setStep(1);
                 }}
-                className="flex-1 py-2 px-4 border border-slate-300 dark:border-slate-600 text-sm font-medium rounded-lg text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="flex-1 py-2 px-4 border border-slate-300 dark:border-slate-600 text-sm font-medium rounded-lg text-slate-700 dark:text-slate-200 saas-card hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
               >
                 Back
               </button>

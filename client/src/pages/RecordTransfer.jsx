@@ -69,13 +69,13 @@ const RecordTransfer = () => {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-lg">
+        <div className="p-2 bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400 rounded-lg">
           <FileText className="w-6 h-6" />
         </div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Record Fund Transfer</h1>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+      <div className="saas-card rounded-xl shadow-sm border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div className="flex gap-4 p-1 bg-slate-100 dark:bg-slate-900 rounded-lg">
             <button
@@ -83,7 +83,7 @@ const RecordTransfer = () => {
               onClick={() => setFormData({ ...formData, type: 'MONEY_IN' })}
               className={`flex-1 py-2 text-sm font-semibold rounded-md transition-colors ${
                 formData.type === 'MONEY_IN' 
-                  ? 'bg-white dark:bg-slate-800 text-green-600 shadow-sm' 
+                  ? 'saas-card text-green-600 shadow-sm' 
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
@@ -94,7 +94,7 @@ const RecordTransfer = () => {
               onClick={() => setFormData({ ...formData, type: 'MONEY_OUT' })}
               className={`flex-1 py-2 text-sm font-semibold rounded-md transition-colors ${
                 formData.type === 'MONEY_OUT' 
-                  ? 'bg-white dark:bg-slate-800 text-red-600 shadow-sm' 
+                  ? 'saas-card text-red-600 shadow-sm' 
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
@@ -111,7 +111,7 @@ const RecordTransfer = () => {
                 required
                 value={formData.collectorId}
                 onChange={(e) => setFormData({ ...formData, collectorId: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-700 dark:text-white"
               >
                 <option value="">Select a Collector...</option>
                 {collectors.map(c => (
@@ -130,7 +130,7 @@ const RecordTransfer = () => {
                 min="1"
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-700 dark:text-white"
                 placeholder="0.00"
               />
             </div>
@@ -143,7 +143,7 @@ const RecordTransfer = () => {
                 required
                 value={formData.paymentMode}
                 onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-700 dark:text-white"
               >
                 <option value="Cash">Cash</option>
                 <option value="UPI">UPI</option>
@@ -158,13 +158,13 @@ const RecordTransfer = () => {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows="3"
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-700 dark:text-white"
                 placeholder="Any remarks about this transfer..."
               />
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-4">
+          <div className="pt-4 border-t border-slate-200/50 dark:border-slate-700/50 flex justify-end gap-4">
             {formData.type === 'MONEY_OUT' && formData.paymentMode === 'UPI' && (
               <button
                 type="button"

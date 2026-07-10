@@ -201,14 +201,14 @@ const ReceiptHistory = () => {
             <input
               type="text"
               placeholder="Search..."
-              className="block w-full pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md leading-5 bg-white dark:bg-slate-700 placeholder-slate-500 focus:outline-none focus:placeholder-slate-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:text-white"
+              className="block w-full pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md leading-5 bg-white dark:bg-slate-700 placeholder-slate-500 focus:outline-none focus:placeholder-slate-400 focus:ring-1 focus:ring-primary-500 focus:border-blue-500 sm:text-sm dark:text-white"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           
           <select 
-            className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-sm dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-sm dark:text-white focus:outline-none focus:ring-1 focus:ring-primary-500"
             value={street}
             onChange={(e) => setStreet(e.target.value)}
           >
@@ -220,7 +220,7 @@ const ReceiptHistory = () => {
           </select>
           
           <select 
-            className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-sm dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-sm dark:text-white focus:outline-none focus:ring-1 focus:ring-primary-500"
             value={paymentMode}
             onChange={(e) => setPaymentMode(e.target.value)}
           >
@@ -233,7 +233,7 @@ const ReceiptHistory = () => {
             <input
               type="text"
               placeholder="Filter by Collector..."
-              className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-sm dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-sm dark:text-white focus:outline-none focus:ring-1 focus:ring-primary-500"
               value={collectorFilter}
               onChange={(e) => setCollectorFilter(e.target.value)}
             />
@@ -241,7 +241,7 @@ const ReceiptHistory = () => {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+      <div className="saas-card rounded-xl shadow-sm border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
             <thead className="bg-slate-50 dark:bg-slate-900/50">
@@ -255,7 +255,7 @@ const ReceiptHistory = () => {
                 <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+            <tbody className="saas-card divide-y divide-slate-200 dark:divide-slate-700">
               {loading ? (
                 <TableRowSkeleton columns={8} rows={6} />
               ) : (!donations || donations.length === 0) ? (
@@ -263,7 +263,7 @@ const ReceiptHistory = () => {
               ) : (
                 (donations || []).map((donor) => (
                   <tr key={donor.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400">{donor.receiptNumber}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary-600 dark:text-primary-400">{donor.receiptNumber}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
                       {format(new Date(donor.date), 'dd MMM yyyy')}
                     </td>
@@ -288,7 +288,7 @@ const ReceiptHistory = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{donor.collector}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900 dark:text-slate-200">₹{donor.amount}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-                      <a href={donor.pdfUrl || `http://localhost:5000/api/donations/${donor.receiptNumber}/pdf`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300" title="Download PDF">
+                      <a href={donor.pdfUrl || `http://localhost:5000/api/donations/${donor.receiptNumber}/pdf`} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-blue-900 dark:text-primary-400 dark:hover:text-blue-300" title="Download PDF">
                         <Download className="inline h-4 w-4" />
                       </a>
                       {donor.paymentMode === 'UPI' && donor.upiScreenshot && user?.role === 'ADMIN' && (
@@ -317,7 +317,7 @@ const ReceiptHistory = () => {
         
         {/* Pagination */}
         {pagination.pages > 1 && (
-          <div className="bg-white dark:bg-slate-800 px-4 py-3 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between sm:px-6">
+          <div className="saas-card px-4 py-3 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between sm:px-6">
             <div className="flex-1 flex justify-between sm:hidden">
               <button 
                 onClick={() => fetchDonations(pagination.page - 1)}
@@ -365,8 +365,8 @@ const ReceiptHistory = () => {
 
       {selectedScreenshot && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75">
-          <div className="relative max-w-3xl w-full bg-white dark:bg-slate-800 rounded-xl shadow-2xl overflow-hidden flex flex-col">
-            <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700">
+          <div className="relative max-w-3xl w-full saas-card rounded-xl shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b border-slate-200/50 dark:border-slate-700/50">
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white">UPI Payment Screenshot</h3>
               <button 
                 onClick={() => setSelectedScreenshot(null)}

@@ -28,16 +28,16 @@ const ReceiptVerification = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
-        <div className="animate-pulse text-blue-600 dark:text-blue-400 font-medium">Verifying receipt...</div>
+      <div className="min-h-screen flex items-center justify-center bg-transparent">
+        <div className="animate-pulse text-primary-600 dark:text-primary-400 font-medium">Verifying receipt...</div>
       </div>
     );
   }
 
   if (error || !receipt) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
-        <div className="max-w-md w-full bg-white dark:bg-slate-800 p-8 rounded-xl shadow-lg border border-red-200 dark:border-red-900 text-center">
+      <div className="min-h-screen flex items-center justify-center bg-transparent px-4">
+        <div className="max-w-md w-full saas-card p-8 rounded-xl shadow-lg border border-red-200 dark:border-red-900 text-center">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Invalid Receipt</h2>
           <p className="text-slate-600 dark:text-slate-400">{error}</p>
@@ -47,9 +47,9 @@ const ReceiptVerification = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-transparent py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+        <div className="saas-card rounded-2xl shadow-xl overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
           {/* Header Banner */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-8 py-10 text-center text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-20">
@@ -106,7 +106,7 @@ const ReceiptVerification = () => {
                   href={receipt.pdfUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-all"
+                  className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 shadow-sm transition-all"
                 >
                   <Download className="mr-2 h-5 w-5" />
                   Download PDF Receipt

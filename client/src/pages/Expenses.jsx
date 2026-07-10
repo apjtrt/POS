@@ -125,7 +125,7 @@ function Expenses() {
 
   const getStatusBadge = (status) => {
     switch(status) {
-      case 'APPROVED': return <span className="flex items-center text-blue-600 bg-blue-50 px-2 py-1 rounded-full text-xs font-semibold"><CheckCircle className="w-3 h-3 mr-1"/> Approved (Pending Payout)</span>;
+      case 'APPROVED': return <span className="flex items-center text-primary-600 bg-blue-50 px-2 py-1 rounded-full text-xs font-semibold"><CheckCircle className="w-3 h-3 mr-1"/> Approved (Pending Payout)</span>;
       case 'PAID': return <span className="flex items-center text-green-600 bg-green-50 px-2 py-1 rounded-full text-xs font-semibold"><CheckCircle className="w-3 h-3 mr-1"/> Paid</span>;
       case 'REJECTED': return <span className="flex items-center text-red-600 bg-red-50 px-2 py-1 rounded-full text-xs font-semibold"><XCircle className="w-3 h-3 mr-1"/> Rejected</span>;
       default: return <span className="flex items-center text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full text-xs font-semibold"><Clock className="w-3 h-3 mr-1"/> Pending</span>;
@@ -154,9 +154,9 @@ function Expenses() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+      <div className="saas-card p-6">
         <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
-          <span className="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">
+          <span className="bg-primary-100 text-primary-600 p-2 rounded-lg mr-3">
             <Send className="w-5 h-5" />
           </span>
           Submit New Expense
@@ -171,7 +171,7 @@ function Expenses() {
               min="1"
               value={formData.amount}
               onChange={(e) => setFormData({...formData, amount: e.target.value})}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-blue-500 outline-none transition-all"
               placeholder="e.g. 150"
             />
           </div>
@@ -183,7 +183,7 @@ function Expenses() {
               rows="2"
               value={formData.description}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-blue-500 outline-none transition-all"
               placeholder="What was this expense for?"
             />
           </div>
@@ -198,7 +198,7 @@ function Expenses() {
                     name="claimFromAdvance"
                     checked={!formData.claimFromAdvance}
                     onChange={() => setFormData({...formData, claimFromAdvance: false})}
-                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">Own Pocket (Reimburse Me)</span>
                 </label>
@@ -208,7 +208,7 @@ function Expenses() {
                     name="claimFromAdvance"
                     checked={formData.claimFromAdvance}
                     onChange={() => setFormData({...formData, claimFromAdvance: true})}
-                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">Organization Advance</span>
                 </label>
@@ -234,7 +234,7 @@ function Expenses() {
                   required={!formData.claimFromAdvance}
                   value={formData.paymentNumber}
                   onChange={(e) => setFormData({...formData, paymentNumber: e.target.value})}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-blue-500 outline-none transition-all"
                   placeholder="e.g. 9876543210@ybl or name@okaxis"
                 />
                 <p className="text-xs text-gray-500 mt-1">This will be securely saved for all future reimbursements.</p>
@@ -267,7 +267,7 @@ function Expenses() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full py-8 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors"
+                className="w-full py-8 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:bg-blue-50 hover:border-blue-300 hover:text-primary-600 transition-colors"
               >
                 <Camera className="w-8 h-8 mb-2" />
                 <span className="font-medium">Tap to Capture Bill</span>
@@ -278,14 +278,14 @@ function Expenses() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center shadow-lg shadow-blue-200 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full bg-primary-600 text-white font-bold py-4 rounded-xl hover:bg-primary-700 active:scale-[0.98] transition-all flex items-center justify-center shadow-lg shadow-blue-200 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit for Approval'}
           </button>
         </form>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+      <div className="saas-card p-6">
         <h3 className="text-lg font-bold text-gray-800 mb-4">My Past Expenses</h3>
         {loading ? (
           <ListSkeleton items={3} />

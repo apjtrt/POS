@@ -57,8 +57,8 @@ const Settings = () => {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-      <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
+    <div className="max-w-3xl mx-auto saas-card rounded-xl shadow-sm border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
+      <div className="px-6 py-4 border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
         <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-200">System Settings</h2>
         <button
           onClick={handleDownloadBackup}
@@ -75,7 +75,7 @@ const Settings = () => {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Association Name</label>
             <input 
               {...register('associationName')}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-primary-500 focus:border-blue-500" 
             />
           </div>
           
@@ -83,7 +83,7 @@ const Settings = () => {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">President Name</label>
             <input 
               {...register('presidentName')}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-primary-500 focus:border-blue-500" 
             />
           </div>
 
@@ -91,7 +91,7 @@ const Settings = () => {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Secretary Name</label>
             <input 
               {...register('secretaryName')}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-primary-500 focus:border-blue-500" 
             />
           </div>
 
@@ -99,7 +99,7 @@ const Settings = () => {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Default Purpose</label>
             <input 
               {...register('defaultPurpose')}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-primary-500 focus:border-blue-500" 
             />
           </div>
 
@@ -107,7 +107,7 @@ const Settings = () => {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Financial Year</label>
             <input 
               {...register('financialYear')}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-primary-500 focus:border-blue-500" 
             />
           </div>
 
@@ -116,7 +116,7 @@ const Settings = () => {
             <input 
               {...register('upiId')}
               placeholder="e.g. yourname@upi"
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-primary-500 focus:border-blue-500" 
             />
           </div>
 
@@ -125,7 +125,7 @@ const Settings = () => {
             <textarea 
               {...register('whatsappMessage')}
               rows="6"
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500 font-mono text-sm" 
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-primary-500 focus:border-blue-500 font-mono text-sm" 
             ></textarea>
             <p className="mt-1 text-xs text-slate-500">Variables available: {'{donorName}'}, {'{amount}'}, {'{receiptNumber}'}, {'{pdfUrl}'}, {'{streetLink}'}</p>
           </div>
@@ -135,12 +135,12 @@ const Settings = () => {
             <textarea 
               {...register('whatsappMessageTa')}
               rows="6"
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500 font-mono text-sm" 
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-primary-500 focus:border-blue-500 font-mono text-sm" 
             ></textarea>
             <p className="mt-1 text-xs text-slate-500">Variables available: {'{amount}'}, {'{receiptNumber}'}, {'{pdfUrl}'}, {'{streetLink}'}</p>
           </div>
 
-          <div className="md:col-span-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+          <div className="md:col-span-2 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
             <h3 className="text-lg font-medium text-slate-800 dark:text-slate-200 mb-4">Street WhatsApp Group Links</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -148,7 +148,7 @@ const Settings = () => {
                 <input 
                   {...register('streetLinks.Kambar Street')}
                   placeholder="https://chat.whatsapp.com/..."
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-primary-500 focus:border-blue-500" 
                 />
               </div>
               <div>
@@ -156,7 +156,7 @@ const Settings = () => {
                 <input 
                   {...register('streetLinks.Kumaran Street')}
                   placeholder="https://chat.whatsapp.com/..."
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-primary-500 focus:border-blue-500" 
                 />
               </div>
               <div>
@@ -164,18 +164,18 @@ const Settings = () => {
                 <input 
                   {...register('streetLinks.Maruthi Street')}
                   placeholder="https://chat.whatsapp.com/..."
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-blue-500 focus:border-blue-500" 
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white focus:ring-primary-500 focus:border-blue-500" 
                 />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
+        <div className="flex justify-end pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex justify-center py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            className="inline-flex justify-center py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
           >
             {isSubmitting ? 'Saving...' : 'Save Settings'}
           </button>

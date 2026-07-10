@@ -127,16 +127,16 @@ function ManageExpenses() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div className="saas-card p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <h2 className="text-xl font-bold text-gray-800">Manage Expenses</h2>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Manage Expenses</h2>
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex flex-wrap bg-gray-100 p-1 rounded-lg gap-1">
+            <div className="flex flex-wrap bg-slate-100 dark:bg-slate-900 p-1 rounded-lg gap-1">
               {['PENDING', 'APPROVED', 'PAID', 'REJECTED', 'ALL'].map(f => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${filter === f ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${filter === f ? 'bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                 >
                   {f}
                 </button>
@@ -144,7 +144,7 @@ function ManageExpenses() {
             </div>
             <button
               onClick={generatePDF}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
+              className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium shadow-sm"
             >
               <Download className="w-4 h-4 mr-2" />
               Generate PDF
@@ -153,16 +153,16 @@ function ManageExpenses() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
+          <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary-600" /></div>
         ) : filteredExpenses.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-            <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 font-medium">No {filter.toLowerCase()} expenses found.</p>
+          <div className="text-center py-12 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+            <Search className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+            <p className="text-slate-500 dark:text-slate-400 font-medium">No {filter.toLowerCase()} expenses found.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredExpenses.map(expense => (
-              <div key={expense.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+              <div key={expense.id} className="saas-card overflow-hidden hover:shadow-md transition-all">
                 <div className="h-48 bg-gray-100 relative group">
                   <img src={expense.billPhotoBase64} alt="Bill" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -174,7 +174,7 @@ function ManageExpenses() {
                     <span className="text-2xl font-bold text-gray-800">₹{expense.amount}</span>
                     <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                       expense.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                      expense.status === 'APPROVED' ? 'bg-blue-100 text-blue-700' :
+                      expense.status === 'APPROVED' ? 'bg-primary-100 text-blue-700' :
                       expense.status === 'PAID' ? 'bg-green-100 text-green-700' :
                       'bg-red-100 text-red-700'
                     }`}>
