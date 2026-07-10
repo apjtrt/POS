@@ -39,35 +39,63 @@ exports.createDonation = async (req, res, next) => {
     }
 
     const year = new Date().getFullYear().toString();
-    const receiptNumber = await generateReceiptNumber(year);
 
     let finalUpiUrl = upiScreenshot || null;
     if (upiScreenshot && upiScreenshot.length > 500) {
-      const filename = `upi-${receiptNumber}-${Date.now()}.jpg`;
+      const filename = `upi-${Date.now()}-${Math.floor(Math.random() * 1000)}.jpg`;
       const cloudinaryUrl = await uploadImageToCloudinary(upiScreenshot, filename, 'upi-screenshots');
       if (cloudinaryUrl) {
         finalUpiUrl = cloudinaryUrl;
       }
     }
 
-    const donor = await prisma.donor.create({
-      data: {
-        receiptNumber,
-        donorName,
-        mobile,
-        street,
-        doorNumber,
-        amount: parseFloat(amount),
-        paymentMode,
-        purpose,
-        remarks,
-        collector: req.user.name,
-        userId: req.user.id,
-        latitude: latitude ? parseFloat(latitude) : null,
-        longitude: longitude ? parseFloat(longitude) : null,
-        upiScreenshot: finalUpiUrl
+    let donor;
+    let receiptNumber;
+    let retries = 3;
+
+    while (retries > 0) {
+      try {
+        receiptNumber = await generateReceiptNumber(year);
+        
+        donor = await prisma.donor.create({
+          data: {
+            receiptNumber,
+            donorName,
+            mobile,
+            street,
+            doorNumber,
+            amount: parseFloat(amount),
+            paymentMode,
+            purpose,
+            remarks,
+            collector: req.user.name,
+            userId: req.user.id,
+            latitude: latitude ? parseFloat(latitude) : null,
+            longitude: longitude ? parseFloat(longitude) : null,
+            upiScreenshot: finalUpiUrl
+          }
+        });
+        
+        // If successful, break out of the retry loop
+        break;
+      } catch (error) {
+        // Prisma error code P2002: Unique constraint failed
+        if (error.code === 'P2002' && (error.meta?.target?.includes('receiptNumber') || error.meta?.target === 'Donor_receiptNumber_key')) {
+          retries--;
+          if (retries === 0) {
+            return res.status(409).json({
+              success: false,
+              message: 'System is experiencing high concurrency. Please try saving again.'
+            });
+          }
+          // Continue loop to try generating a new number
+          console.log(`Receipt number collision detected for ${receiptNumber}. Retrying... (${retries} retries left)`);
+          continue;
+        }
+        // If it's a different error, throw it so the outer catch block handles it
+        throw error;
       }
-    });
+    }
 
     // We no longer upload to GitHub. Serve PDFs dynamically from the backend directly.
     const protocol = req.headers['x-forwarded-proto'] || req.protocol;
