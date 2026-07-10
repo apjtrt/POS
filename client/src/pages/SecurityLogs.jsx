@@ -43,7 +43,7 @@ const SecurityLogs = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {logs.map((log) => (
-          <div key={log.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
+          <div key={log.id} className="saas-card rounded-xl shadow-sm border border-slate-200/50 dark:border-slate-700/50 overflow-hidden flex flex-col">
             <div className="relative aspect-video bg-slate-100 dark:bg-slate-900 flex items-center justify-center">
               {log.photoBase64 ? (
                 <img 
@@ -65,7 +65,7 @@ const SecurityLogs = () => {
                   <p className="text-xs text-slate-500 dark:text-slate-400">@{log.user.username}</p>
                 </div>
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  log.user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                  log.user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-primary-100 text-blue-700 dark:bg-primary-900/30 dark:text-primary-300'
                 }`}>
                   {log.user.role}
                 </span>
@@ -74,7 +74,7 @@ const SecurityLogs = () => {
                 <div className="flex justify-between items-center">
                   <span>Login: {format(new Date(log.createdAt), 'MMM d, h:mm a')}</span>
                   {log.loginLatitude && (
-                    <a href={`https://www.google.com/maps/search/?api=1&query=${log.loginLatitude},${log.loginLongitude}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 flex items-center">
+                    <a href={`https://www.google.com/maps/search/?api=1&query=${log.loginLatitude},${log.loginLongitude}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-primary-600 flex items-center">
                       <Camera className="w-3 h-3 mr-1" /> Map
                     </a>
                   )}
@@ -97,7 +97,7 @@ const SecurityLogs = () => {
         ))}
 
         {logs.length === 0 && (
-          <div className="col-span-full py-12 text-center bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+          <div className="col-span-full py-12 text-center saas-card rounded-xl border border-slate-200/50 dark:border-slate-700/50">
             <ShieldAlert className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600 mb-3" />
             <p className="text-slate-500 dark:text-slate-400">No login logs found.</p>
           </div>

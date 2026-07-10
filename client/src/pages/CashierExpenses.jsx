@@ -52,16 +52,16 @@ function CashierExpenses() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div className="saas-card p-6">
         <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
-          <span className="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">
+          <span className="bg-primary-100 text-primary-600 p-2 rounded-lg mr-3">
             <Banknote className="w-5 h-5" />
           </span>
           Pending Payouts
         </h2>
 
         {loading ? (
-          <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
+          <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-primary-600" /></div>
         ) : pendingPayouts.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
             <CheckCircle className="w-12 h-12 text-green-300 mx-auto mb-3" />
@@ -70,7 +70,7 @@ function CashierExpenses() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {pendingPayouts.map(expense => (
-              <div key={expense.id} className="bg-white border-2 border-blue-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+              <div key={expense.id} className="saas-card overflow-hidden hover:shadow-md transition-all">
                 <div className="h-32 bg-gray-100 relative group">
                   <img src={expense.billPhotoBase64} alt="Bill" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -134,7 +134,7 @@ function CashierExpenses() {
       </div>
 
       {paidOut.length > 0 && (
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 opacity-70">
+        <div className="saas-card p-6 opacity-70">
           <h3 className="text-lg font-bold text-gray-800 mb-4">Recently Paid</h3>
           <div className="space-y-3">
             {paidOut.slice(0, 5).map(e => (

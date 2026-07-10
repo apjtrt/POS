@@ -8,7 +8,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { toast } from 'react-toastify';
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6', '#f43f5e', '#eab308'];
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#6366f1', '#14b8a6', '#f43f5e', '#eab308'];
 
 const DetailedReports = () => {
   const [reports, setReports] = useState(null);
@@ -281,8 +281,8 @@ const DetailedReports = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* Street Wise Report */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+        <div className="saas-card rounded-xl shadow-sm border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
+          <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/50">
             <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Street-Wise Collection</h2>
           </div>
           <div className="p-6">
@@ -333,8 +333,8 @@ const DetailedReports = () => {
         </div>
 
         {/* Collector Wise Report */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+        <div className="saas-card rounded-xl shadow-sm border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
+          <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/50">
             <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Collector-Wise Collection</h2>
           </div>
           <div className="p-6">
@@ -383,8 +383,8 @@ const DetailedReports = () => {
         </div>
 
         {/* Date Wise Report */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden lg:col-span-2">
-          <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+        <div className="saas-card rounded-xl shadow-sm border border-slate-200/50 dark:border-slate-700/50 overflow-hidden lg:col-span-2">
+          <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/50">
             <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Date-Wise Collection</h2>
           </div>
           <div className="p-6">
@@ -419,11 +419,11 @@ const DetailedReports = () => {
                         {format(new Date(d.date), 'dd MMM yyyy, EEEE')}
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400 text-right">{d.count}</td>
-                      <td className="px-4 py-3 text-sm font-semibold text-blue-600 dark:text-blue-400 text-right">₹{d.amount}</td>
+                      <td className="px-4 py-3 text-sm font-semibold text-primary-600 dark:text-primary-400 text-right">₹{d.amount}</td>
                       <td className="px-4 py-3 text-right">
                         <Link 
                           to={`/donations/history?date=${d.date}`}
-                          className="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 rounded-md text-sm font-medium transition-colors"
+                          className="inline-flex items-center px-3 py-1 bg-blue-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-900/30 dark:text-primary-400 dark:hover:bg-blue-900/50 rounded-md text-sm font-medium transition-colors"
                         >
                           <FileText className="w-4 h-4 mr-1" />
                           View Receipts

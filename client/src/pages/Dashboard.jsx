@@ -6,7 +6,7 @@ import { IndianRupee, Users, Receipt, TrendingUp, ChevronRight, ArrowDownToLine,
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import DashboardSkeleton from '../components/DashboardSkeleton';
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -53,8 +53,8 @@ const Dashboard = () => {
             title="Remaining Amount"
             value={`₹${(((stats.totalUpi || 0) + (stats.totalReceived || 0)) - (stats.totalSpent || 0)).toLocaleString()}`}
             icon={Wallet}
-            color="text-blue-600"
-            bg="bg-blue-100 dark:bg-blue-900/50"
+            color="text-primary-600"
+            bg="bg-primary-100 dark:bg-primary-900/50"
           />
           <StatCard
             title="Amount Received as Cash"
@@ -74,8 +74,8 @@ const Dashboard = () => {
 
         {/* Collector Balances Table for Cashier */}
         {stats.collectorBalances && stats.collectorBalances.length > 0 && (
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mt-6">
-            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+          <div className="saas-card overflow-hidden mt-6">
+            <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50">
               <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Collector Cash Balances</h2>
               <p className="text-sm text-slate-500">Physical cash currently held by collectors (Donations - Handed Over)</p>
             </div>
@@ -89,12 +89,12 @@ const Dashboard = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Advance Spent</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+                <tbody className="saas-card divide-y divide-slate-200 dark:divide-slate-700">
                   {stats.collectorBalances.map((collector) => (
                     <tr key={collector.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-200">{collector.name} ({collector.username})</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-red-600">₹{collector.cashInHand?.toLocaleString() || 0}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-blue-600">₹{collector.advanceBalance?.toLocaleString() || 0}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-primary-600">₹{collector.advanceBalance?.toLocaleString() || 0}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-purple-600">₹{collector.advanceSpent?.toLocaleString() || 0}</td>
                     </tr>
                   ))}
@@ -164,7 +164,7 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Street Wise Chart */}
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <div className="saas-card p-6">
           <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">Street Wise Collection</h2>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -183,7 +183,7 @@ const Dashboard = () => {
         </div>
 
         {/* Payment Mode Chart */}
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <div className="saas-card p-6">
           <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">Payment Wise Collection</h2>
           <div className="h-80 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
@@ -220,8 +220,8 @@ const Dashboard = () => {
       </div>
 
       {/* Top Donors Table */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+      <div className="saas-card overflow-hidden">
+        <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50">
           <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Top Donors</h2>
         </div>
         <div className="overflow-x-auto">
@@ -233,7 +233,7 @@ const Dashboard = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Amount</th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+            <tbody className="saas-card divide-y divide-slate-200 dark:divide-slate-700">
               {(stats?.topDonors || []).map((donor, idx) => (
                 <tr key={idx}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-200">{donor.name}</td>
@@ -253,8 +253,8 @@ const Dashboard = () => {
 
       {/* Collector Balances Table for Admin */}
       {user?.role === 'ADMIN' && stats?.collectorBalances && stats.collectorBalances.length > 0 && (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mt-6">
-          <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+        <div className="saas-card overflow-hidden mt-6">
+          <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50">
             <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Collector Cash Balances</h2>
             <p className="text-sm text-slate-500">Physical cash currently held by collectors (Donations - Handed Over)</p>
           </div>
@@ -268,12 +268,12 @@ const Dashboard = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Advance Spent</th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+              <tbody className="saas-card divide-y divide-slate-200 dark:divide-slate-700">
                 {stats.collectorBalances.map((collector) => (
                   <tr key={collector.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-200">{collector.name} ({collector.username})</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-red-600">₹{collector.cashInHand?.toLocaleString() || 0}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-blue-600">₹{collector.advanceBalance?.toLocaleString() || 0}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-primary-600">₹{collector.advanceBalance?.toLocaleString() || 0}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-slate-200 font-bold text-purple-600">₹{collector.advanceSpent?.toLocaleString() || 0}</td>
                   </tr>
                 ))}
@@ -287,7 +287,7 @@ const Dashboard = () => {
 };
 
 const StatCard = ({ title, value, icon: Icon, color, bg, rightIcon }) => (
-  <div className={`bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center ${rightIcon ? 'h-full' : ''}`}>
+  <div className={`saas-card p-6 flex items-center animate-lift ${rightIcon ? 'h-full' : ''}`}>
     <div className={`p-3 rounded-lg ${bg} mr-4`}>
       <Icon className={`w-6 h-6 ${color}`} />
     </div>
