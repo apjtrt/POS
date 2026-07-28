@@ -54,10 +54,14 @@ exports.createExpense = async (req, res, next) => {
 exports.getExpenses = async (req, res, next) => {
   try {
     const { role, id } = req.user;
+    const { universal } = req.query;
     
     // Admins see all expenses, collectors see only theirs, Cashiers see APPROVED or PAID
+    // If universal=true is requested, everyone can see all PAID expenses
     let whereClause = {};
-    if (role === 'COLLECTOR') {
+    if (universal === 'true') {
+      whereClause = { status: 'PAID' };
+    } else if (role === 'COLLECTOR') {
       whereClause = { userId: id };
     } else if (role === 'CASHIER') {
       whereClause = { status: { in: ['APPROVED', 'PAID'] } };
