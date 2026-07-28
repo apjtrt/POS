@@ -30,9 +30,39 @@ const Dashboard = () => {
   if (loading) return <DashboardSkeleton />;
   if (!stats) return null;
 
+  const UniversalOverview = () => (
+    <div className="mb-2">
+      <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Universal Overview (System-wide)</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard
+          title="Universal Income"
+          value={`₹${stats.universalIncome?.toLocaleString() || 0}`}
+          icon={IndianRupee}
+          color="text-blue-600"
+          bg="bg-blue-100 dark:bg-blue-900/50"
+        />
+        <StatCard
+          title="Universal Expenses"
+          value={`₹${stats.universalExpenses?.toLocaleString() || 0}`}
+          icon={ArrowUpFromLine}
+          color="text-red-600"
+          bg="bg-red-100 dark:bg-red-900/50"
+        />
+        <StatCard
+          title="Net Balance"
+          value={`₹${((stats.universalIncome || 0) - (stats.universalExpenses || 0)).toLocaleString()}`}
+          icon={Wallet}
+          color="text-emerald-600"
+          bg="bg-emerald-100 dark:bg-emerald-900/50"
+        />
+      </div>
+    </div>
+  );
+
   if (stats.isCashier) {
     return (
       <div className="space-y-6">
+        <UniversalOverview />
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Cashier Dashboard</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <StatCard
@@ -109,6 +139,7 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
+      <UniversalOverview />
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Dashboard Overview</h1>
 
       {/* Stat Cards */}
@@ -117,7 +148,7 @@ const Dashboard = () => {
           <Link to="/reports" className="block transform transition-transform hover:scale-105">
             <StatCard
               title="Total Donation (Click for Details)"
-              value={`₹${stats.totalDonation}`}
+              value={`₹${stats.totalDonation?.toLocaleString() || 0}`}
               icon={IndianRupee}
               color="text-blue-600"
               bg="bg-blue-100 dark:bg-blue-900/50"
@@ -125,7 +156,7 @@ const Dashboard = () => {
             />
           </Link>
         ) : (
-          <StatCard title="Total Donation" value={`₹${stats.totalDonation}`} icon={IndianRupee} color="text-blue-600" bg="bg-blue-100 dark:bg-blue-900/50" />
+          <StatCard title="Total Donation" value={`₹${stats.totalDonation?.toLocaleString() || 0}`} icon={IndianRupee} color="text-blue-600" bg="bg-blue-100 dark:bg-blue-900/50" />
         )}
         <Link to="/reports?filter=today" className="block transform transition-transform hover:scale-105">
           <StatCard
