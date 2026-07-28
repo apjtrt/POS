@@ -17,7 +17,7 @@ app.use(cors({
     'http://localhost:3000',
     'http://localhost:5173',
     'https://apjbilling.vercel.app',
-    'httpshttps://apjbilling-ten.vercel.app'
+    'https://apjbilling-ten.vercel.app'
   ],
   credentials: true
 }));
