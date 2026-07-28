@@ -66,7 +66,7 @@ exports.getDashboardStats = async (req, res, next) => {
     const isCashier = req.user.role === 'CASHIER';
 
     if (isCashier) {
-      const [moneyIn, moneyOut, upiDonations, allDonations] = await Promise.all([
+      const [moneyIn, moneyOut, upiDonations, allDonations, allExpenses] = await Promise.all([
         prisma.cashTransfer.aggregate({
           where: { cashierId: req.user.id, type: 'MONEY_IN' },
           _sum: { amount: true }
@@ -80,6 +80,10 @@ exports.getDashboardStats = async (req, res, next) => {
           _sum: { amount: true }
         }),
         prisma.donor.aggregate({
+          _sum: { amount: true }
+        }),
+        prisma.expense.aggregate({
+          where: { status: 'PAID' },
           _sum: { amount: true }
         })
       ]);
@@ -101,6 +105,8 @@ exports.getDashboardStats = async (req, res, next) => {
           remainingAmount: remaining,
           totalUpi,
           totalAll,
+          universalIncome: totalAll,
+          universalExpenses: allExpenses._sum.amount || 0,
           collectorBalances
         }
       });
@@ -109,6 +115,8 @@ exports.getDashboardStats = async (req, res, next) => {
     const whereClause = isCollector ? { userId: req.user.id } : {};
     const todayWhere = isCollector ? { date: { gte: today }, userId: req.user.id } : { date: { gte: today } };
 
+    const expenseWhereClause = isCollector ? { userId: req.user.id, status: 'PAID' } : { status: 'PAID' };
+
     const [
       totalAgg,
       todayAgg,
@@ -116,7 +124,10 @@ exports.getDashboardStats = async (req, res, next) => {
       recentDonations,
       streetWise,
       paymentWise,
-      topDonors
+      topDonors,
+      totalExpensesAgg,
+      universalIncomeAgg,
+      universalExpensesAgg
     ] = await Promise.all([
       prisma.donor.aggregate({ where: whereClause, _sum: { amount: true }, _avg: { amount: true } }),
       prisma.donor.aggregate({ where: todayWhere, _sum: { amount: true } }),
@@ -124,7 +135,10 @@ exports.getDashboardStats = async (req, res, next) => {
       prisma.donor.findMany({ where: whereClause, take: 10, orderBy: { id: 'desc' } }),
       prisma.donor.groupBy({ by: ['street'], where: whereClause, _sum: { amount: true }, orderBy: { _sum: { amount: 'desc' } } }),
       prisma.donor.groupBy({ by: ['paymentMode'], where: whereClause, _sum: { amount: true } }),
-      prisma.donor.groupBy({ by: ['donorName', 'mobile'], where: whereClause, _sum: { amount: true }, orderBy: { _sum: { amount: 'desc' } }, take: 10 })
+      prisma.donor.groupBy({ by: ['donorName', 'mobile'], where: whereClause, _sum: { amount: true }, orderBy: { _sum: { amount: 'desc' } }, take: 10 }),
+      prisma.expense.aggregate({ where: expenseWhereClause, _sum: { amount: true } }),
+      prisma.donor.aggregate({ _sum: { amount: true } }), // universal income
+      prisma.expense.aggregate({ where: { status: 'PAID' }, _sum: { amount: true } }) // universal expenses
     ]);
 
     let collectorBalances = [];
@@ -150,6 +164,9 @@ exports.getDashboardStats = async (req, res, next) => {
       success: true,
       data: {
         totalDonation: totalAgg._sum.amount || 0,
+        totalExpenses: totalExpensesAgg._sum.amount || 0,
+        universalIncome: universalIncomeAgg._sum.amount || 0,
+        universalExpenses: universalExpensesAgg._sum.amount || 0,
         averageDonation: totalAgg._avg.amount || 0,
         todayCollection: todayAgg._sum.amount || 0,
         totalReceipts: totalCount,
