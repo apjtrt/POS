@@ -2,9 +2,13 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
-import { IndianRupee, Users, Receipt, TrendingUp, ChevronRight, ArrowDownToLine, ArrowUpFromLine, Wallet } from 'lucide-react';
+import { IndianRupee, Users, Receipt, TrendingUp, ChevronRight, ArrowDownToLine, ArrowUpFromLine, Wallet, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import DashboardSkeleton from '../components/DashboardSkeleton';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { format } from 'date-fns';
+import { toast } from 'react-toastify';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -27,6 +31,100 @@ const Dashboard = () => {
     fetchStats();
   }, []);
 
+  const handleDownloadUniversalExpenses = async () => {
+    try {
+      const toastId = toast.loading('Generating Universal Expenses PDF...');
+      const res = await api.get('/expenses?universal=true');
+      const expensesData = res.data.data;
+      
+      if (!expensesData || expensesData.length === 0) {
+        toast.update(toastId, { render: 'No expenses found!', type: 'warning', isLoading: false, autoClose: 3000 });
+        return;
+      }
+      
+      const grouped = {};
+      expensesData.forEach(exp => {
+        const dateKey = format(new Date(exp.createdAt), 'yyyy-MM-dd');
+        if (!grouped[dateKey]) grouped[dateKey] = [];
+        grouped[dateKey].push(exp);
+      });
+
+      const sortedDates = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
+      const doc = new jsPDF('portrait');
+      
+      const centerText = (text, y, size, isBold = false) => {
+        doc.setFontSize(size);
+        if (isBold) doc.setFont("helvetica", "bold");
+        else doc.setFont("helvetica", "normal");
+        const textWidth = doc.getStringUnitWidth(text) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+        const textOffset = (doc.internal.pageSize.width - textWidth) / 2;
+        doc.text(text, textOffset, y);
+      };
+
+      centerText('Dr.A.P.J Abdul Kalam Youth Welfare Association', 15, 14, true);
+      centerText('Universal Expense Report (All Paid Expenses)', 22, 12, true);
+
+      let currentY = 32;
+      let grandTotal = 0;
+      let receiptCounter = 1;
+
+      sortedDates.forEach(dateStr => {
+        if (currentY > 260) {
+          doc.addPage();
+          currentY = 20;
+        }
+
+        centerText(`Date: ${format(new Date(dateStr), 'dd/MM/yy')}`, currentY, 11, true);
+        currentY += 6;
+
+        let dateTotal = 0;
+        const tableRows = grouped[dateStr].map(exp => {
+          dateTotal += exp.amount;
+          return [
+            receiptCounter++,
+            exp.description,
+            exp.amount,
+            exp.user?.name || 'Unknown'
+          ];
+        });
+
+        tableRows.push([
+          { content: 'Total', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } },
+          { content: dateTotal, styles: { fontStyle: 'bold' } },
+          { content: '' }
+        ]);
+
+        autoTable(doc, {
+          startY: currentY,
+          head: [['Receipt No.', 'Description', 'Amount', 'Collector']],
+          body: tableRows,
+          theme: 'grid',
+          styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
+          headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], lineWidth: 0.1, fontStyle: 'normal' },
+          bodyStyles: { lineWidth: 0.1 },
+          didDrawPage: (data) => {
+            currentY = data.cursor.y;
+          }
+        });
+
+        currentY += 8;
+        grandTotal += dateTotal;
+        centerText(`Total for Date ${format(new Date(dateStr), 'dd/MM/yy')}: Rs. ${dateTotal}`, currentY, 11, true);
+        currentY += 10;
+      });
+
+      if (currentY > 260) { doc.addPage(); currentY = 20; }
+      centerText(`GRAND TOTAL: Rs. ${grandTotal}`, currentY, 14, true);
+
+      doc.save('Universal_Expenses_Report.pdf');
+      toast.update(toastId, { render: 'PDF downloaded successfully!', type: 'success', isLoading: false, autoClose: 3000 });
+    } catch (error) {
+      console.error(error);
+      toast.dismiss();
+      toast.error('Failed to generate universal expenses PDF');
+    }
+  };
+
   if (loading) return <DashboardSkeleton />;
   if (!stats) return null;
 
@@ -41,13 +139,16 @@ const Dashboard = () => {
           color="text-blue-600"
           bg="bg-blue-100 dark:bg-blue-900/50"
         />
-        <StatCard
-          title="Universal Expenses"
-          value={`₹${stats.universalExpenses?.toLocaleString() || 0}`}
-          icon={ArrowUpFromLine}
-          color="text-red-600"
-          bg="bg-red-100 dark:bg-red-900/50"
-        />
+        <div onClick={handleDownloadUniversalExpenses} className="cursor-pointer block transform transition-transform hover:scale-105">
+          <StatCard
+            title="Universal Expenses (Click for PDF)"
+            value={`₹${stats.universalExpenses?.toLocaleString() || 0}`}
+            icon={ArrowUpFromLine}
+            color="text-red-600"
+            bg="bg-red-100 dark:bg-red-900/50"
+            rightIcon={<Download className="text-slate-400 ml-auto" />}
+          />
+        </div>
         <StatCard
           title="Net Balance"
           value={`₹${((stats.universalIncome || 0) - (stats.universalExpenses || 0)).toLocaleString()}`}
